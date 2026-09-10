@@ -701,7 +701,7 @@ const CONTRATOS_SEED = [
   {contrato:"45265", cliente:"TTK SOLUCOES TEXTEIS LTDA", imovel:"AV. GETULIO VARGAS,299 - 104", codigoDominio:20, contaReceita:880, direto:false},
   {contrato:"45595", cliente:"KARLA TEIXEIRA KLEIN FERNANDES", imovel:"AV. GETULIO VARGAS,299 - 103", codigoDominio:21, contaReceita:867, direto:false},
   {contrato:"47360", cliente:"TTK SOLUCOES TEXTEIS LTDA", imovel:"AV. GETULIO VARGAS,299 - 107", codigoDominio:20, contaReceita:880, direto:false},
-  {contrato:"", cliente:"ARLINDO ROCHA ADVOGADOS ASSOCIADOS", imovel:"", codigoDominio:13, contaReceita:null, direto:true},
+  {contrato:"", cliente:"ARLINDO ROCHA ADVOGADOS ASSOCIADOS", imovel:"AVENIDA GETULIO VARGAS - CENTRO - CRICIUMA/SC - CEP 88800-000", codigoDominio:13, contaReceita:null, direto:true},
 ];
 const APLICACOES_SEED = [
   {titulo:"17206001069", conta:100},
@@ -1475,6 +1475,18 @@ const PADROES_SEED = [
   {keywords:["ARLINDO ROCHA ADVOGADOS"], debito:null, credito:null, hist:"", periodo:null, ignorar:true}, // já coberto na aba Baixa de Serviço
   {keywords:["RESGATE APLICACAO"], debito:null, credito:null, hist:"", periodo:null, ignorar:true}, // gerado na aba Locativa
   {keywords:["RECEBIMENTO DE TED","LOCATIVA"], debito:null, credito:null, hist:"", periodo:null, ignorar:true}, // gerado na aba Locativa
+  // Distribuição de lucros — cada sócia tem sua própria linha de pagamento no extrato.
+  // Pagamento: D 262 (baixa o passivo "Lucros a Pagar") / C 8 (caixa saindo).
+  // Companion: D <conta da sócia> (lançamento acumulado da distribuição no ano) / C 262
+  // (mesma provisão, não mexe no banco) — gerado junto, mesma data/valor.
+  // OBS: o valor original informado tinha a conta 8 como débito no pagamento, o que
+  // faria o caixa aumentar numa saída de dinheiro — invertido aqui pra bater com o
+  // extrato (confirmado com o Guilherme que pode corrigir a polaridade). Confira antes
+  // de importar caso o plano de contas da IG trate a 262/840/841 de outro jeito.
+  {keywords:["TRANSFERENCIA ENTRE CONTAS"], debito:262, credito:8, hist:"VALOR REF. DISTRIBUIÇÃO DE LUCROS {MM}/{AAAA} - BARBARA GUIMARÃES", periodo:"atual", ignorar:false,
+    companion:{debito:840, credito:262, hist:"VALOR REF. LUCROS A DISTRIBUIR {MM}/{AAAA} - BARBARA GUIMARÃES"}},
+  {keywords:["PATRICIA GUIMARAES MORMELLO","DEB PIX"], debito:262, credito:8, hist:"VALOR REF. DISTRIBUIÇÃO DE LUCROS {MM}/{AAAA} - PATRICIA GUIMARÃES", periodo:"atual", ignorar:false,
+    companion:{debito:841, credito:262, hist:"VALOR REF. LUCROS A DISTRIBUIR {MM}/{AAAA} - PATRICIA GUIMARÃES"}},
 ];
 function loadPadroes(){
   let saved = [];
@@ -1567,13 +1579,16 @@ function processarLancamentos(){
       return;
     }
     if(padrao.ignorar){ ignoradasRegra++; return; }
-    let hist = padrao.hist || "";
-    if(padrao.periodo){
-      const ref = mesAnoRef(e.data, padrao.periodo);
-      const [mm,aaaa] = ref.split("/");
-      hist = hist.replace("{MM}", mm).replace("{AAAA}", aaaa);
-    }
+    const mm_aaaa = padrao.periodo ? mesAnoRef(e.data, padrao.periodo).split("/") : null;
+    function aplicaPeriodo(h){ return mm_aaaa ? h.replace("{MM}", mm_aaaa[0]).replace("{AAAA}", mm_aaaa[1]) : h; }
+    const hist = aplicaPeriodo(padrao.hist || "");
     rows.push({data:e.data, debito:padrao.debito, credito:padrao.credito||bankConta, valor:Math.abs(e.valor), hist, complemento:null, iniciaLote:1, incluir:true, flag:!padrao.debito, statusText: padrao.debito ? "OK (padrão cadastrado)" : "Padrão sem conta de débito — complete à mão"});
+    // "Companion": um segundo lançamento fixo que sempre acompanha esse padrão (mesma
+    // data/valor, contas diferentes, não mexe no banco) — ex. a provisão mensal que
+    // sempre acompanha o pagamento da distribuição de lucros a uma sócia.
+    if(padrao.companion){
+      rows.push({data:e.data, debito:padrao.companion.debito, credito:padrao.companion.credito, valor:Math.abs(e.valor), hist:aplicaPeriodo(padrao.companion.hist||""), complemento:null, iniciaLote:1, incluir:true, flag:false, statusText:"OK (lançamento companheiro — provisão, não mexe no banco)"});
+    }
   });
 
   rows.sort((a,b)=>partsToDate(a.data)-partsToDate(b.data));
