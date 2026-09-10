@@ -1,0 +1,1757 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lançamentos IG</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+:root{
+  --ink:#1A1A1A;
+  --ink-soft:#65656B;
+  --paper:#E7E6E2;
+  --paper-raised:#FFFFFF;
+  --rule:#D6D5D1;
+  --rule-strong:#A9A7A2;
+  --red:#A6392C;
+  --red-bg:#F6E1DC;
+  --green-ink:#1F5E3C;
+  --green-bg:#DEEEE3;
+  --amber:#8A6400;
+  --amber-bg:#FCEEA9;
+  --accent:#2B4C7E;
+  --accent-bg:#DDE6F2;
+  --shadow: 0 1px 2px rgba(0,0,0,0.06), 0 4px 14px rgba(0,0,0,0.06);
+}
+*{box-sizing:border-box;}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:'IBM Plex Sans',sans-serif;-webkit-font-smoothing:antialiased;}
+.app{max-width:1280px;margin:0 auto;padding:28px 20px 80px;}
+.topbar{padding-bottom:18px;margin-bottom:22px;border-bottom:2px solid var(--ink);display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:12px;}
+.brand h1{font-family:'Source Serif 4',serif;font-size:26px;font-weight:800;margin:0 0 4px;letter-spacing:-0.01em;}
+.brand .sub{font-size:13px;color:var(--ink-soft);max-width:720px;}
+.backlink{font-size:12.5px;color:var(--ink-soft);text-decoration:none;border-bottom:1px dotted var(--ink-soft);}
+.backlink:hover{color:var(--ink);}
+.cricon-brand{display:flex;align-items:center;gap:8px;}
+.cricon-brand svg{width:28px;height:auto;flex-shrink:0;}
+.cricon-brand .cw{line-height:1.05;text-align:right;}
+.cricon-brand .cw .nm{font-family:'Source Serif 4',serif;font-style:italic;font-weight:700;font-size:14px;color:#5D4232;white-space:nowrap;}
+.cricon-brand .cw .tg{font-family:'IBM Plex Sans',sans-serif;font-size:9px;color:var(--ink-soft);letter-spacing:.02em;white-space:nowrap;}
+
+.card{background:var(--paper-raised);border:1.5px solid var(--ink);border-radius:6px;box-shadow:var(--shadow);padding:20px;margin-bottom:20px;}
+
+.dropzone{border:2px dashed var(--rule-strong);border-radius:6px;padding:22px 14px;text-align:center;cursor:pointer;transition:background .15s,border-color .15s;}
+.dropzone:hover,.dropzone.drag{background:rgba(0,0,0,0.03);border-color:var(--ink);}
+.dropzone .big{font-size:13.5px;font-weight:600;margin-bottom:4px;}
+.dropzone .small{font-size:11.5px;color:var(--ink-soft);}
+.dropzone.done{border-style:solid;border-color:var(--green-ink);background:var(--green-bg);}
+.dropzone.optional{opacity:.8;}
+input[type=file]{display:none;}
+
+.field-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-bottom:14px;}
+.field label{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--ink-soft);margin-bottom:4px;font-family:'IBM Plex Mono',monospace;}
+.field input,.field select{width:100%;padding:7px 9px;border:1.5px solid var(--rule-strong);border-radius:4px;font-size:13.5px;font-family:'IBM Plex Mono',monospace;background:var(--paper-raised);color:var(--ink);}
+.field input:focus,.field select:focus{outline:none;border-color:var(--ink);}
+
+.btn{padding:9px 16px;border-radius:4px;border:1.5px solid var(--ink);background:var(--ink);color:var(--paper);cursor:pointer;font-weight:600;font-size:13.5px;transition:transform .08s ease,opacity .15s;font-family:'IBM Plex Sans',sans-serif;}
+.btn:hover{opacity:.88;}
+.btn:active{transform:translateY(1px);}
+.btn.ghost{background:transparent;color:var(--ink);}
+.btn.ghost:hover{background:rgba(0,0,0,0.06);}
+.btn.small{padding:5px 10px;font-size:12px;}
+.btn:disabled{opacity:.35;cursor:not-allowed;}
+.btn-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;}
+
+.status-line{font-family:'IBM Plex Mono',monospace;font-size:12.5px;color:var(--ink-soft);margin-top:10px;white-space:pre-wrap;}
+.status-line.err{color:var(--red);}
+.status-line.ok{color:var(--green-ink);}
+
+.badge{display:inline-block;font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.03em;padding:2px 8px;border-radius:10px;font-weight:600;}
+.badge.ok{background:var(--green-bg);color:var(--green-ink);}
+.badge.warn{background:var(--amber-bg);color:var(--amber);}
+.badge.err{background:var(--red-bg);color:var(--red);}
+.badge.info{background:var(--accent-bg);color:var(--accent);}
+
+.summary-row{display:flex;gap:18px;flex-wrap:wrap;margin:14px 0;font-size:13px;}
+.summary-row .item .k{color:var(--ink-soft);font-size:11px;text-transform:uppercase;letter-spacing:.03em;font-family:'IBM Plex Mono',monospace;}
+.summary-row .item .v{font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:16px;}
+
+table.preview{width:100%;border-collapse:collapse;font-size:12px;margin-top:8px;}
+table.preview th{text-align:left;padding:7px 8px;border-bottom:1.5px solid var(--rule-strong);font-family:'IBM Plex Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.03em;color:var(--ink-soft);position:sticky;top:0;background:var(--paper-raised);white-space:nowrap;}
+table.preview th.sortable{cursor:pointer;user-select:none;}
+table.preview th.sortable:hover{color:var(--ink);}
+table.preview th.sortable .arrow{color:var(--accent);}
+.table-toolbar{display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap;}
+.table-toolbar input[type=search]{flex:1;max-width:320px;padding:7px 9px;border:1.5px solid var(--rule-strong);border-radius:4px;font-size:13px;font-family:'IBM Plex Sans',sans-serif;background:var(--paper-raised);color:var(--ink);}
+.table-toolbar input[type=search]:focus{outline:none;border-color:var(--ink);}
+.table-toolbar .count{font-size:11.5px;color:var(--ink-soft);font-family:'IBM Plex Mono',monospace;white-space:nowrap;}
+table.preview td{padding:6px 8px;border-bottom:1px solid var(--rule);vertical-align:top;}
+table.preview td.num{text-align:right;font-family:'IBM Plex Mono',monospace;white-space:nowrap;}
+table.preview tr.flag{background:var(--amber-bg);}
+table.preview tr.err{background:var(--red-bg);}
+table.preview tr.excluded{opacity:.45;}
+.table-wrap{max-height:460px;overflow:auto;border:1px solid var(--rule);border-radius:4px;}
+.cell-input{font-family:'IBM Plex Mono',monospace;font-size:12px;padding:3px 5px;border:1.5px solid transparent;border-radius:3px;background:transparent;width:100%;min-width:66px;color:var(--ink);}
+.cell-input:hover{border-color:var(--rule-strong);}
+.cell-input:focus{outline:none;border-color:var(--ink);background:var(--paper-raised);}
+.cell-input.num{text-align:right;font-weight:600;}
+.cell-input.wide{min-width:170px;}
+td.cell{padding:2px 4px;}
+
+.tabbar{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;}
+.tabbtn{border:1.5px solid var(--rule-strong);border-radius:6px;padding:9px 16px;cursor:pointer;font-size:13.5px;font-weight:600;background:var(--paper-raised);color:var(--ink-soft);transition:border-color .15s,background .15s,color .15s;}
+.tabbtn:hover{border-color:var(--ink);}
+.tabbtn.active{border-color:var(--ink);background:var(--ink);color:var(--paper);}
+
+.hidden{display:none !important;}
+.section-title{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.03em;margin:0 0 12px;color:var(--ink-soft);font-family:'IBM Plex Mono',monospace;}
+.help{font-size:12px;color:var(--ink-soft);line-height:1.55;margin-bottom:14px;}
+.help b{color:var(--ink);}
+footer{margin-top:30px;font-size:11.5px;color:var(--ink-soft);text-align:center;}
+code{background:var(--paper);padding:1px 5px;border-radius:3px;font-family:'IBM Plex Mono',monospace;font-size:11.5px;}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="topbar">
+    <div class="brand">
+      <h1>Lançamentos IG</h1>
+      <div class="sub">I.G. Administradora de Bens e Imóveis — processa o repasse mensal da Locativa, gera os lançamentos contábeis, as NFS de aluguel, a NFS de resgate de aplicação, o lançamento de rendimento e as baixas de parcelas (entrada/serviço) pro Domínio. Tudo roda 100% local no navegador. Cadastro de CPF/CNPJ compartilhado com as demais ferramentas do escritório <span id="cloudStatus" class="badge info">Conectando…</span></div>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px;">
+      <a class="backlink" href="https://criconcontabilidade.github.io/Cricon-Ferramentas/" onclick="window.close(); setTimeout(function(){ location.href='https://criconcontabilidade.github.io/Cricon-Ferramentas/'; }, 250); return false;">← Hub de Ferramentas</a>
+      <div class="cricon-brand">
+        <svg viewBox="0 0 141 109" xmlns="http://www.w3.org/2000/svg"><path d="M 15.33 33.25 L 9.50 52.58 L 11.33 74.33 L 19.08 90.67 L 36.17 102.92 L 57.25 104.92 L 73.25 100.08 L 84.92 104.83 L 100.25 104.83 L 115.75 97.92 L 126.00 85.67 L 129.92 74.17 L 130.25 61.92 L 60.92 62.08 L 62.42 49.00 L 130.58 48.75 L 129.92 37.75 L 126.75 29.75 L 118.33 20.33 L 111.42 16.33 L 97.92 12.75 L 88.58 12.67 L 72.58 18.17 L 59.83 13.67 L 41.33 13.58 L 26.42 20.42 Z M 78.58 93.58 L 86.00 80.08 L 86.00 78.42 L 87.00 77.08 L 87.00 74.33 L 87.92 72.75 L 88.33 69.50 L 120.42 69.42 L 121.00 69.92 L 121.08 74.17 L 120.17 75.42 L 120.08 77.17 L 119.25 78.25 L 119.25 79.58 L 117.33 83.67 L 115.83 85.17 L 114.75 87.33 L 111.33 90.75 L 109.25 91.75 L 108.08 92.92 L 102.33 95.92 L 100.33 96.00 L 98.50 97.00 L 85.58 97.00 L 84.42 96.00 L 82.58 95.92 Z M 62.33 69.50 L 78.42 69.42 L 79.25 70.08 L 79.25 70.92 L 78.33 72.58 L 78.33 74.25 L 77.42 75.42 L 77.42 77.00 L 76.50 78.25 L 76.58 79.67 L 76.00 80.33 L 75.58 81.67 L 74.92 82.33 L 74.67 83.58 L 73.92 84.33 L 73.58 85.50 L 71.67 87.58 L 71.17 87.50 L 70.75 87.00 L 69.92 86.67 L 69.00 85.25 L 66.75 82.83 L 66.25 81.42 L 63.83 77.00 L 63.75 75.25 L 62.83 74.17 L 62.83 71.67 L 61.92 70.58 L 61.92 69.92 Z M 20.17 69.75 L 20.58 69.42 L 52.00 69.67 L 52.83 70.58 L 53.17 72.50 L 54.08 73.67 L 54.17 75.50 L 55.08 76.50 L 55.00 78.17 L 56.00 80.75 L 59.67 86.42 L 60.00 87.83 L 61.58 89.33 L 61.83 90.58 L 63.50 92.33 L 63.42 93.75 L 62.58 94.83 L 61.33 95.08 L 60.33 96.00 L 58.42 96.08 L 57.42 97.00 L 43.83 97.00 L 42.58 96.00 L 41.00 96.00 L 39.75 95.08 L 38.42 95.08 L 36.25 94.08 L 34.75 92.67 L 30.33 90.25 L 26.67 86.50 L 26.42 85.33 L 23.08 81.00 L 22.83 79.08 L 21.00 76.25 L 20.92 73.83 L 20.00 72.50 Z M 19.08 50.08 L 20.42 49.00 L 51.83 49.08 L 52.33 49.58 L 52.25 55.25 L 51.42 57.83 L 51.42 61.17 L 50.67 61.83 L 18.58 61.83 L 18.08 61.33 L 18.08 58.58 L 19.08 56.17 Z M 72.67 28.83 L 75.50 31.67 L 76.58 33.58 L 77.42 34.58 L 77.58 36.42 L 78.42 37.50 L 78.33 38.92 L 79.33 40.33 L 79.25 41.00 L 78.50 41.42 L 65.25 41.33 L 64.67 40.58 L 64.58 39.67 L 65.42 38.50 L 65.67 37.42 L 66.42 36.50 L 66.58 35.50 L 68.00 33.92 L 68.50 32.58 L 72.00 29.00 Z M 80.17 23.67 L 81.50 22.33 L 82.75 22.00 L 83.75 21.17 L 85.50 21.08 L 86.58 20.17 L 99.25 20.17 L 100.33 21.08 L 103.00 21.17 L 104.25 22.08 L 107.75 23.08 L 109.42 24.67 L 112.67 26.00 L 117.08 30.42 L 120.17 35.50 L 120.17 37.00 L 121.17 38.50 L 121.08 40.83 L 120.42 41.42 L 88.50 41.42 L 87.92 40.67 L 87.92 38.33 L 86.92 36.92 L 86.92 34.50 L 86.17 33.75 L 84.75 30.33 L 80.75 25.42 Z M 64.58 23.67 L 63.33 26.33 L 61.08 28.58 L 60.67 29.83 L 59.17 31.33 L 58.75 32.75 L 57.33 34.33 L 56.08 37.00 L 55.92 38.33 L 55.08 39.25 L 55.08 40.75 L 54.42 41.42 L 22.58 41.50 L 22.17 41.17 L 22.92 39.42 L 22.83 38.42 L 26.83 31.42 L 33.17 25.17 L 41.00 21.17 L 43.58 21.08 L 44.75 20.17 L 57.50 20.17 L 58.92 21.00 L 60.83 21.17 L 63.08 22.17 Z" fill="#5D4232" fill-rule="evenodd"/></svg>
+        <div class="cw"><div class="nm">Contabilidade Cricon</div><div class="tg">Contabilizando seu sucesso!</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tabbar" id="tabbar">
+    <div class="tabbtn active" data-tab="locativa" onclick="selectTab('locativa')">Locativa (mês)</div>
+    <div class="tabbtn" data-tab="servico" onclick="selectTab('servico')">Baixa de Serviço</div>
+    <div class="tabbtn" data-tab="pagar" onclick="selectTab('pagar')">Baixa de Pagamentos</div>
+    <div class="tabbtn" data-tab="lanc" onclick="selectTab('lanc')">Lançamentos (padrões)</div>
+    <div class="tabbtn" data-tab="cadastros" onclick="selectTab('cadastros')">Cadastros</div>
+  </div>
+
+  <!-- ===================== TAB: LOCATIVA ===================== -->
+  <div id="tabLocativa">
+  <div class="card">
+    <div class="section-title">1. Documentos do mês</div>
+    <div class="help">O recibo da Locativa traz a competência do mês <b>anterior</b> (paga no mês atual). Anexe também o extrato do Unicred (pra achar a data do TED e do resgate) e, se tiver, o Demonstrativo de Rentabilidade da Unicred (aplicação financeira) — gera sozinho o lançamento do rendimento do período e a NFS de resgate, quando houver.</div>
+    <div class="field-row">
+      <div class="field">
+        <label>Recibo de Repasse (Locativa, PDF) *</label>
+        <div class="dropzone" id="locativaDrop"><div class="big">Arraste o PDF aqui</div><div class="small">Recibo de Pagamento de Proprietário</div><input type="file" id="locativaFile" accept="application/pdf"></div>
+      </div>
+      <div class="field">
+        <label>Extrato Unicred (PDF) *</label>
+        <div class="dropzone" id="extratoLocDrop"><div class="big">Arraste o PDF aqui</div><div class="small">Usado pra achar a data do TED e do resgate</div><input type="file" id="extratoLocFile" accept="application/pdf"></div>
+      </div>
+      <div class="field">
+        <label>Demonstrativo de Aplicação (Unicred, PDF)</label>
+        <div class="dropzone optional" id="aplicacaoDrop"><div class="big">Opcional</div><div class="small">Gera o lançamento de rendimento e a NFS de resgate</div><input type="file" id="aplicacaoFile" accept="application/pdf"></div>
+      </div>
+    </div>
+    <div class="btn-row"><button class="btn" id="processBtnLoc" disabled onclick="processarLocativa()">Processar</button></div>
+    <div id="mainStatusLoc" class="status-line hidden"></div>
+  </div>
+
+  <div id="resultCardLoc" class="hidden"></div>
+  </div>
+
+  <!-- ===================== TAB: BAIXA DE SERVIÇO ===================== -->
+  <div id="tabServico" class="hidden">
+  <div class="card">
+    <div class="section-title">1. Relatórios do mês</div>
+    <div class="field-row">
+      <div class="field">
+        <label>Contas a Receber por Cliente (PDF)</label>
+        <div class="dropzone" id="contasDrop"><div class="big">Arraste o PDF aqui</div><div class="small">Lê sozinho a empresa (CNPJ) do cabeçalho</div><input type="file" id="contasFile" accept="application/pdf"></div>
+      </div>
+      <div class="field">
+        <label>Extrato bancário Unicred (PDF)</label>
+        <div class="dropzone" id="extratoDrop"><div class="big">Arraste o PDF aqui</div><div class="small">Casa os créditos do extrato com os títulos em aberto, por nome + valor exato</div><input type="file" id="extratoFile" accept="application/pdf"></div>
+      </div>
+    </div>
+    <div class="btn-row"><button class="btn" id="processBtn" disabled onclick="processarBaixaServico()">Processar</button></div>
+    <div id="mainStatus" class="status-line hidden"></div>
+  </div>
+  <div class="card hidden" id="resultCard"></div>
+  </div>
+
+  <!-- ===================== TAB: BAIXA DE PAGAMENTOS ===================== -->
+  <div id="tabPagar" class="hidden">
+  <div class="card">
+    <div class="section-title">1. Relatórios do mês</div>
+    <div class="field-row">
+      <div class="field">
+        <label>Contas a Pagar por Fornecedor (PDF)</label>
+        <div class="dropzone" id="contasPagarDrop"><div class="big">Arraste o PDF aqui</div><div class="small">Lê sozinho a empresa (CNPJ) do cabeçalho</div><input type="file" id="contasPagarFile" accept="application/pdf"></div>
+      </div>
+      <div class="field">
+        <label>Extrato bancário Unicred (PDF)</label>
+        <div class="dropzone" id="extratoPagarDrop"><div class="big">Arraste o PDF aqui</div><div class="small">Casa os débitos do extrato com os títulos em aberto, por soma exata dentro de uma janela de dias até o vencimento</div><input type="file" id="extratoPagarFile" accept="application/pdf"></div>
+      </div>
+    </div>
+    <div class="btn-row"><button class="btn" id="processBtnPagar" disabled onclick="processarBaixaPagar()">Processar</button></div>
+    <div id="mainStatusPagar" class="status-line hidden"></div>
+  </div>
+  <div class="card hidden" id="resultCardPagar"></div>
+  </div>
+
+  <!-- ===================== TAB: LANÇAMENTOS (PADRÕES) ===================== -->
+  <div id="tabLanc" class="hidden">
+  <div class="card">
+    <div class="section-title">1. Documentos do mês</div>
+    <div class="help">Só as linhas de despesa (débito) do extrato que <b>não</b> forem baixa de título (aba Baixa de Pagamentos) nem recebimento de aluguel/PIX/resgate (abas Locativa e Baixa de Serviço) entram aqui. Cadastro de "padrões" reconhece a linha pela palavra-chave e já preenche débito/crédito/histórico sozinho.</div>
+    <div class="field-row">
+      <div class="field">
+        <label>Contas a Pagar por Fornecedor (PDF)</label>
+        <div class="dropzone" id="contasLancDrop"><div class="big">Arraste o PDF aqui</div><div class="small">Usado só pra não duplicar lançamento de título já baixado na outra aba</div><input type="file" id="contasLancFile" accept="application/pdf"></div>
+      </div>
+      <div class="field">
+        <label>Extrato bancário Unicred (PDF)</label>
+        <div class="dropzone" id="extratoLancDrop"><div class="big">Arraste o PDF aqui</div><input type="file" id="extratoLancFile" accept="application/pdf"></div>
+      </div>
+      <div class="field">
+        <label>Código Emp. (Domínio)</label>
+        <input type="text" id="codEmp" placeholder="código da IG no Domínio">
+      </div>
+    </div>
+    <div class="btn-row"><button class="btn" id="processBtnLanc" disabled onclick="processarLancamentos()">Processar</button></div>
+    <div id="mainStatusLanc" class="status-line hidden"></div>
+  </div>
+
+  <div class="card">
+    <div class="section-title">Padrões de lançamento (extrato → conta contábil)</div>
+    <div class="help">Cadastro editável: qual conta de débito/crédito usar quando a palavra-chave aparece na linha do extrato. <code>{MM}/{AAAA}</code> no histórico vira o mês/ano do lançamento (atual ou anterior, conforme a coluna Período). "Ignorar" nunca gera lançamento (já coberto por outra aba). As palavras-chave usam E lógico (todas precisam aparecer) — separe por vírgula.</div>
+    <div class="table-wrap"><table class="preview" id="padroesTable"></table></div>
+    <div class="btn-row"><button class="btn ghost small" onclick="addPadraoRow()">+ Novo padrão</button></div>
+  </div>
+
+  <div class="card hidden" id="resultCardLanc"></div>
+  </div>
+
+  <!-- ===================== TAB: CADASTROS ===================== -->
+  <div id="tabCadastros" class="hidden">
+  <div class="card">
+    <div class="section-title">Contratos (Locativa + diretos)</div>
+    <div class="help">Contrato → cliente/imóvel → <b>conta de receita</b> (crédito no lançamento do repasse e na NFS) e código do cliente no Domínio (usado pra achar o CPF/CNPJ no cadastro compartilhado). Contratos do mesmo cliente podem repetir a mesma conta de receita (ex.: os 2 apartamentos da Tania). O contrato do Arlindo é direto (fora da Locativa) — preencha a conta de receita dele antes de gerar a NFS de serviço.</div>
+    <div class="table-wrap"><table class="preview" id="contratosTable"></table></div>
+    <div class="btn-row"><button class="btn ghost small" onclick="addContratoRow()">+ Novo contrato</button></div>
+  </div>
+  <div class="card">
+    <div class="section-title">Aplicações Financeiras</div>
+    <div class="help">Título (nº da aplicação, como aparece no Demonstrativo de Rentabilidade) → conta Domínio do CDB, pra saber que conta debitar/creditar no lançamento do rendimento e na NFS de resgate.</div>
+    <div class="table-wrap"><table class="preview" id="aplicacoesTable"></table></div>
+    <div class="btn-row"><button class="btn ghost small" onclick="addAplicacaoRow()">+ Nova aplicação</button></div>
+  </div>
+  <div class="card">
+    <div class="section-title">Contas fixas do repasse Locativa</div>
+    <div class="help">Contas usadas no lançamento composto do repasse mensal. Histórico padrão pras despesas: <code>PAGAMENTO REF. {NOME DA DESPESA} NO REPASSE DE {MÊS ANTERIOR} - LOCATIVA</code>. A de impostos usa <code>RECEBIMENTO REF. IMPOSTOS ADIANTADOS {MÊS ANTERIOR} - LOCATIVA</code>.</div>
+    <div class="table-wrap"><table class="preview" id="contasFixasTable"></table></div>
+  </div>
+  </div>
+
+  <!-- ===================== CADASTRO CNPJ (fallback) ===================== -->
+  <div class="card hidden" id="cnpjHelperCard">
+    <div class="section-title">CPF/CNPJ não encontrados — importar cadastro</div>
+    <div class="help">Sobraram títulos sem CPF/CNPJ resolvido. Solte aqui o relatório de <b>Clientes</b> ou <b>Fornecedores</b> (PDF do Domínio) <b id="cnpjHelperEmpresa"></b>. Isso atualiza o cadastro compartilhado do escritório e já resolve as linhas pendentes na hora.</div>
+    <div class="dropzone" id="cadPdfDrop" style="padding:16px;"><div class="big">Arraste o PDF de Clientes/Fornecedores aqui</div><input type="file" id="cadPdfFile" accept="application/pdf"></div>
+    <div id="cadPdfStatus" class="status-line hidden"></div>
+  </div>
+
+  <footer>Lançamentos IG · Cricon Contabilidade — uso interno</footer>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>
+pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+
+/* =========================================================================
+   HELPERS: valores / datas / documento (mesmo comportamento validado nas
+   demais ferramentas do escritório)
+   ========================================================================= */
+function onlyDigits(s){ return (s||"").toString().replace(/\D/g,""); }
+function normalizeText(s){ return (s||"").toString().normalize("NFD").replace(/[̀-ͯ]/g,"").toUpperCase().trim(); }
+function parseBRL(str){
+  if(str==null) return null;
+  str = String(str).trim();
+  if(str==="" || str==="-") return null;
+  const neg = /^-/.test(str) || /^\(.*\)$/.test(str);
+  str = str.replace(/[()\-]/g,"").replace(/R\$/g,"").replace(/\s+/g,"").replace(/\./g,"").replace(",",".").trim();
+  const n = parseFloat(str);
+  if(isNaN(n)) return null;
+  return neg ? -n : n;
+}
+function fmtBRL(n){
+  if(n==null || isNaN(n)) return "";
+  return n.toLocaleString("pt-BR",{minimumFractionDigits:2,maximumFractionDigits:2});
+}
+function fmtValorTxt(n){
+  if(n==null || n==="" || isNaN(n)) return "0";
+  const r = Math.round(Number(n)*100)/100;
+  if(r === 0) return "0";
+  if(Number.isInteger(r)) return String(r);
+  return r.toFixed(2).replace(".",",");
+}
+function brDateToParts(str){
+  const m = String(str).trim().match(/^(\d{2})\/(\d{2})\/(\d{2,4})$/);
+  if(!m) return null;
+  let [_,dd,mm,yy] = m;
+  if(yy.length===2) yy = (parseInt(yy)>50 ? "19":"20")+yy;
+  return {y:parseInt(yy), m:parseInt(mm), d:parseInt(dd)};
+}
+function fmtDateBR(dt){ return dt ? `${String(dt.d).padStart(2,"0")}/${String(dt.m).padStart(2,"0")}/${dt.y}` : ""; }
+function partsToDate(dt){ return new Date(Date.UTC(dt.y, dt.m-1, dt.d)); }
+function diffDays(a,b){ return Math.round((partsToDate(a)-partsToDate(b))/86400000); }
+function mesAnoRef(dt, periodo){
+  let y = dt.y, m = dt.m;
+  if(periodo==="anterior"){ m -= 1; if(m<1){ m=12; y-=1; } }
+  return `${String(m).padStart(2,"0")}/${y}`;
+}
+function mesAnoAnterior(y,m){ m -= 1; if(m<1){ m=12; y-=1; } return `${String(m).padStart(2,"0")}/${y}`; }
+
+function mod11Digit(nums, weights){
+  let total = 0;
+  for(let i=0;i<nums.length;i++) total += nums[i]*weights[i];
+  const r = total % 11;
+  return r<2 ? 0 : 11-r;
+}
+function isValidCPF(digits){
+  const d = onlyDigits(digits);
+  if(d.length!==11 || /^(\d)\1{10}$/.test(d)) return false;
+  const nums = d.split("").map(Number);
+  const dv1 = mod11Digit(nums.slice(0,9), [10,9,8,7,6,5,4,3,2]);
+  const dv2 = mod11Digit(nums.slice(0,9).concat([dv1]), [11,10,9,8,7,6,5,4,3,2]);
+  return nums[9]===dv1 && nums[10]===dv2;
+}
+function isValidCNPJ(digits){
+  const d = onlyDigits(digits);
+  if(d.length!==14 || /^(\d)\1{13}$/.test(d)) return false;
+  const nums = d.split("").map(Number);
+  const w1 = [5,4,3,2,9,8,7,6,5,4,3,2];
+  const w2 = [6,5,4,3,2,9,8,7,6,5,4,3,2];
+  const dv1 = mod11Digit(nums.slice(0,12), w1);
+  const dv2 = mod11Digit(nums.slice(0,12).concat([dv1]), w2);
+  return nums[12]===dv1 && nums[13]===dv2;
+}
+function classifyDocumento(digits){
+  const d = onlyDigits(digits);
+  if(d.length===14) return {tipo:"CNPJ", valido:isValidCNPJ(d)};
+  if(d.length===11) return {tipo:"CPF", valido:isValidCPF(d)};
+  return {tipo:null, valido:false};
+}
+
+function downloadText(filename, content, mime){
+  const blob = new Blob([content], {type: mime||"text/plain;charset=utf-8"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  document.body.appendChild(a); a.click(); a.remove();
+}
+function downloadXlsx(filename, rowsAoA, sheetName){
+  const ws = XLSX.utils.aoa_to_sheet(rowsAoA);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, sheetName||"Sheet1");
+  XLSX.writeFile(wb, filename);
+}
+// O Domínio lê os TXT de importação como ANSI (Windows-1252) — sem isso, acento sai
+// trocado. Só usamos letras acentuadas do português (todas ≤0xFF, iguais em Latin-1 e
+// Windows-1252 nessa faixa), então converte char a char pro byte correspondente.
+function downloadTextAnsi(filename, content){
+  const bytes = new Uint8Array(content.length);
+  for(let i=0;i<content.length;i++){
+    const code = content.charCodeAt(i);
+    bytes[i] = code <= 0xFF ? code : 0x3F;
+  }
+  const blob = new Blob([bytes], {type:"text/plain"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  document.body.appendChild(a); a.click(); a.remove();
+}
+function stripAccents(s){ return String(s??"").normalize("NFD").replace(/[̀-ͯ]/g,""); }
+function exportJson(getFn, filename){ downloadText(filename, JSON.stringify(getFn(),null,2), "application/json"); }
+
+/* =========================================================================
+   PDF: extração de linhas de texto (agrupadas por Y, ordenadas por X)
+   ========================================================================= */
+async function extractPdfPageLines(pdf, pageNum){
+  const page = await pdf.getPage(pageNum);
+  const content = await page.getTextContent();
+  const rows = {};
+  content.items.forEach(it=>{
+    const y = Math.round(it.transform[5]);
+    if(!rows[y]) rows[y] = [];
+    rows[y].push({x:it.transform[4], text:it.str});
+  });
+  const ys = Object.keys(rows).map(Number).sort((a,b)=>b-a);
+  return ys.map(y=> rows[y].sort((a,b)=>a.x-b.x).map(t=>t.text).join(" ").replace(/\s+/g," ").trim() ).filter(l=>l.length>0);
+}
+async function extractPdfAllLines(file){
+  const buf = await file.arrayBuffer();
+  const pdf = await pdfjsLib.getDocument({data:buf}).promise;
+  const pages = [];
+  for(let p=1;p<=pdf.numPages;p++) pages.push(await extractPdfPageLines(pdf, p));
+  return pages;
+}
+// Itens crus (x,y,texto) — usado pelo Demonstrativo de Aplicação Financeira, cujo PDF
+// organiza a tabela em faixas horizontais por CAMPO (não por título).
+async function extractPdfPageItems(pdf, pageNum){
+  const page = await pdf.getPage(pageNum);
+  const content = await page.getTextContent();
+  return content.items.map(it=>({x:it.transform[4], y:it.transform[5], text:it.str, w:it.width||0})).filter(it=>it.text.trim()!=="");
+}
+async function extractPdfAllItems(file){
+  const buf = await file.arrayBuffer();
+  const pdf = await pdfjsLib.getDocument({data:buf}).promise;
+  const pages = [];
+  for(let p=1;p<=pdf.numPages;p++) pages.push(await extractPdfPageItems(pdf, p));
+  return pages;
+}
+
+/* =========================================================================
+   TABELA — filtro + ordenação genéricos
+   ========================================================================= */
+function makeTableState(){ return {filter:"", sortCol:null, sortDir:1}; }
+function sortValue(v){ return v && typeof v==="object" && "y" in v ? partsToDate(v).getTime() : v; }
+function filterSortRows(rows, state, getSearchable){
+  let indexed = rows.map((row,idx)=>({row, idx}));
+  const needle = normalizeText((state.filter||"").trim());
+  if(needle) indexed = indexed.filter(({row})=> getSearchable(row).some(v=>normalizeText(String(v??"")).includes(needle)));
+  if(state.sortCol){
+    indexed.sort((a,b)=>{
+      const va = sortValue(a.row[state.sortCol]), vb = sortValue(b.row[state.sortCol]);
+      if(va==null && vb==null) return 0;
+      if(va==null) return 1;
+      if(vb==null) return -1;
+      if(typeof va === "number" && typeof vb === "number") return (va-vb)*state.sortDir;
+      return String(va).localeCompare(String(vb), "pt-BR", {numeric:true})*state.sortDir;
+    });
+  }
+  return indexed;
+}
+function toggleSort(state, col, rerenderFn){
+  if(state.sortCol===col){ state.sortDir *= -1; } else { state.sortCol = col; state.sortDir = 1; }
+  rerenderFn();
+}
+function sortTh(stateVarName, state, col, label, rerenderFnName){
+  const arrow = state.sortCol===col ? `<span class="arrow">${state.sortDir===1?"▲":"▼"}</span>` : "";
+  return `<th class="sortable" onclick="toggleSort(${stateVarName},'${col}',${rerenderFnName})">${label} ${arrow}</th>`;
+}
+
+function wireDropzone(dropId, inputId, onFile){
+  const drop = document.getElementById(dropId);
+  const input = document.getElementById(inputId);
+  drop.addEventListener("click", ()=>input.click());
+  input.addEventListener("change", ()=>{ if(input.files[0]) onFile(input.files[0], drop); });
+  drop.addEventListener("dragover", e=>{ e.preventDefault(); drop.classList.add("drag"); });
+  drop.addEventListener("dragleave", ()=> drop.classList.remove("drag"));
+  drop.addEventListener("drop", e=>{
+    e.preventDefault(); drop.classList.remove("drag");
+    if(e.dataTransfer.files[0]) onFile(e.dataTransfer.files[0], drop);
+  });
+}
+function markDropDone(drop, label){
+  drop.classList.add("done");
+  drop.querySelector(".big").textContent = "✓ " + label;
+}
+
+function selectTab(t){
+  document.querySelectorAll(".tabbtn").forEach(el=>el.classList.toggle("active", el.dataset.tab===t));
+  document.getElementById("tabLocativa").classList.toggle("hidden", t!=="locativa");
+  document.getElementById("tabServico").classList.toggle("hidden", t!=="servico");
+  document.getElementById("tabPagar").classList.toggle("hidden", t!=="pagar");
+  document.getElementById("tabLanc").classList.toggle("hidden", t!=="lanc");
+  document.getElementById("tabCadastros").classList.toggle("hidden", t!=="cadastros");
+  document.getElementById("cnpjHelperCard").classList.add("hidden");
+  if(t==="cadastros"){ renderContratosTable(); renderAplicacoesTable(); renderContasFixasTable(); }
+}
+
+/* =========================================================================
+   PARSER — Contas a Pagar por Fornecedor / Contas a Receber por Cliente
+   ========================================================================= */
+const EMPRESA_RE = /^Empresa:\s*(.+?)\s+P.gina/i;
+const CNPJ_HEADER_RE = /CNPJ:\s*([\d.\/-]{14,18})/;
+const GROUP_RE = /^(Cliente|Fornecedor):\s*(\d+)\s*-\s*(.+)$/;
+const TITULO_RE = /^(\S+)\s+(\d{2}\/\d{2}\/\d{4})\s+\d{2}\/\d{2}\/\d{4}\s+(\d{2}\/\d{2}\/\d{4})\s+([\d.,]+)\s+([\d.,]+)\s+[\d.,]+\s+[\d.,]+\s+[\d.,]+\s+[\d.,]+\s+[\d.,]+\s+[\d.,]+\s*(Aberta|Parcial|Baixada|Recebida|Paga)$/;
+
+async function parseContasReport(file){
+  const pages = await extractPdfAllLines(file);
+  const allLines = pages.flat();
+  const fullText = allLines.join("\n");
+
+  let empresaNome = null, empresaCnpj = null;
+  const em = fullText.match(EMPRESA_RE);
+  if(em) empresaNome = em[1].trim();
+  const cm = fullText.match(CNPJ_HEADER_RE);
+  if(cm) empresaCnpj = onlyDigits(cm[1]);
+
+  const titulos = [];
+  let codigo = null, nomeParceiro = null, tipoTitulo = "cliente";
+  const naoLidas = [];
+  allLines.forEach(line=>{
+    const gm = line.match(GROUP_RE);
+    if(gm){ tipoTitulo = gm[1].toLowerCase()==="fornecedor" ? "fornecedor" : "cliente"; codigo = gm[2]; nomeParceiro = gm[3].trim(); return; }
+    if(/^Sub Total/i.test(line) || /^Total Geral/i.test(line) || /^Documento/i.test(line)) return;
+    const tm = line.match(TITULO_RE);
+    if(tm && codigo!=null){
+      titulos.push({
+        codigo, nome: nomeParceiro, tipoTitulo,
+        documento: tm[1],
+        emissao: brDateToParts(tm[2]),
+        vencimento: brDateToParts(tm[3]),
+        valorParcela: parseBRL(tm[4]),
+        valorBaixado: parseBRL(tm[5]),
+        situacao: tm[6],
+      });
+    } else if(/^\S+\s+\d{2}\/\d{2}\/\d{4}/.test(line)){
+      naoLidas.push(line);
+    }
+  });
+  return {empresaNome, empresaCnpj, titulos, naoLidas};
+}
+
+/* =========================================================================
+   PARSER — Extrato Unicred (PDF). Layout real: cada lançamento pode quebrar
+   em várias linhas visuais e a DATA fica no MEIO (não no início) — uma parte
+   da descrição vem antes da linha "DATA [-] R$ valor R$ saldo" (a "âncora") e
+   o resto pode continuar depois, até fechar o parêntese "( Doc.: ... )".
+   ========================================================================= */
+const EXTRATO_SKIP_RE = [
+  /^Data\s+Lan.amentos/i, /^CENTRAL DE RELACIONAMENTO/i, /^0800/, /^Saldo/i, /^Total/i,
+  /^Limite/i, /^Extrato$/i, /^Per.odo de/i, /^Coop:/i, /^Solicitado por/i, /\*\*\.\*\*\*\./,
+  /^\d{2}\/\d{2}\/\d{4}\s+\d{2}:\d{2}:\d{2}$/, /^IOF R\$/i, /^Juros/i, /^Tarifas pendentes/i,
+  /^Lan.amentos futuros/i, /^R\$\s*[\d.,]+$/,
+];
+const EXTRATO_ANCHOR_RE = /^(\d{2}\/\d{2}\/\d{4})\s*(.*?)\s*(-)?\s*R\$\s*([\d.,]+)\s+R\$\s*([\d.,]+)$/;
+function extratoParensBalanced(s){
+  let o=0,c=0; for(const ch of s){ if(ch==='(') o++; else if(ch===')') c++; }
+  return o>0 && o===c;
+}
+function parseExtratoUnicred(allLines){
+  const out = [];
+  let pending = [];
+  let current = null;
+  const closeCurrent = ()=>{
+    if(!current) return;
+    const desc = current.descParts.join(" ").replace(/\s+/g," ").trim();
+    let nome = "";
+    const pm = desc.match(/\(\s*Doc\.:\s*(.*?)\)\s*$/i);
+    if(pm){
+      const inside = pm[1];
+      const slashIdx = inside.lastIndexOf("/");
+      if(slashIdx>=0) nome = inside.slice(slashIdx+1).trim();
+    }
+    out.push({data: current.data, descricao: desc, nome, valor: current.valor, _used:false});
+    current = null;
+  };
+  allLines.forEach(line=>{
+    if(EXTRATO_SKIP_RE.some(re=>re.test(line))) return;
+    const am = line.match(EXTRATO_ANCHOR_RE);
+    if(am){
+      closeCurrent();
+      const [, dataStr, inline, neg, valorStr, saldoStr] = am;
+      const valor = parseBRL(valorStr) * (neg ? -1 : 1);
+      const descParts = [...pending];
+      if(inline) descParts.push(inline);
+      pending = [];
+      current = {data: brDateToParts(dataStr), valor, descParts};
+      if(extratoParensBalanced(current.descParts.join(" "))) closeCurrent();
+    } else if(current){
+      current.descParts.push(line);
+      if(extratoParensBalanced(current.descParts.join(" "))) closeCurrent();
+    } else {
+      pending.push(line);
+    }
+  });
+  closeCurrent();
+  return out;
+}
+
+/* =========================================================================
+   MOTOR DE CASAMENTO — soma exata + janela
+   ========================================================================= */
+const WINDOWS = [[0,6],[-3,12],[-8,20],[-12,30]];
+function dpSubsetExact(pool, targetCents){
+  const n = pool.length;
+  const vals = pool.map(p=>p._cents);
+  const order = [...Array(n).keys()].sort((a,b)=>vals[b]-vals[a]);
+  let result = null;
+  function rec(i, remaining, chosen){
+    if(result) return;
+    if(remaining===0){ result = chosen.slice(); return; }
+    if(i>=n || remaining<0) return;
+    let rest = 0;
+    for(let j=i;j<n;j++) rest += vals[order[j]];
+    if(rest < remaining) return;
+    const idx = order[i];
+    chosen.push(idx);
+    rec(i+1, remaining-vals[idx], chosen);
+    chosen.pop();
+    if(result) return;
+    rec(i+1, remaining, chosen);
+  }
+  rec(0, targetCents, []);
+  return result ? result.map(i=>pool[i]) : null;
+}
+function matchAll(lumps, abertos){
+  abertos.forEach(a=>{ a._cents = Math.round(a.valorParcela*100); a._used = false; });
+  const results = {};
+  const wideResolved = new Set();
+  let remaining = lumps.map((_,i)=>i);
+  for(let passNo=0; passNo<WINDOWS.length; passNo++){
+    const [wlo, whi] = WINDOWS[passNo];
+    const scored = remaining.map(idx=>{
+      const pool = abertos.filter(a=> !a._used && diffDays(lumps[idx].data, a.vencimento)>=wlo && diffDays(lumps[idx].data, a.vencimento)<=whi);
+      return {idx, n:pool.length};
+    }).sort((a,b)=>a.n-b.n);
+    const still = [];
+    scored.forEach(({idx})=>{
+      const pool = abertos.filter(a=> !a._used && diffDays(lumps[idx].data, a.vencimento)>=wlo && diffDays(lumps[idx].data, a.vencimento)<=whi);
+      const found = dpSubsetExact(pool, Math.round(lumps[idx].valor*100));
+      if(found){
+        found.forEach(a=>a._used=true);
+        results[idx] = found;
+        if(passNo>0) wideResolved.add(idx);
+      } else {
+        still.push(idx);
+      }
+    });
+    remaining = still;
+  }
+  const unmatchedAbertos = abertos.filter(a=>!a._used);
+  return {results, wideResolved, unmatchedLumpIdx:remaining, unmatchedAbertos};
+}
+function findBestNameMatch(nome, candidatos){
+  const norm = normalizeText(nome);
+  const words = norm.split(/\s+/).filter(w=>w.length>2);
+  let best=null, bestScore=0;
+  candidatos.forEach(c=>{
+    const cn = normalizeText(c.nome);
+    let score = 0;
+    if(cn.includes(norm) || norm.includes(cn)) score += 10;
+    words.forEach(w=>{ if(cn.includes(w)) score += 1; });
+    if(score>bestScore){ bestScore=score; best=c; }
+  });
+  return bestScore>0 ? {match:best, score:bestScore} : null;
+}
+
+/* =========================================================================
+   RESOLUÇÃO DE CPF/CNPJ — código (empresa+cliente+código) primeiro, depois
+   nome aproximado no cadastro compartilhado (mesmo Firestore do escritório)
+   ========================================================================= */
+function resolverCnpj(empresaCnpj, tipoTitulo, codigo, nomeRelatorio){
+  const chave = `${empresaCnpj}_${tipoTitulo}_${codigo}`;
+  const doc = codigoIndex[chave];
+  if(doc && clientesDB[doc]){
+    return {documento: doc, nome: clientesDB[doc].razao_social};
+  }
+  const norm = normalizeText(nomeRelatorio);
+  const words = norm.split(/\s+/).filter(w=>w.length>2);
+  let best=null, bestScore=0, bestKey=null;
+  Object.keys(clientesDB).forEach(key=>{
+    const c = clientesDB[key];
+    const cn = normalizeText(c.razao_social);
+    let score = 0;
+    if(cn.includes(norm) || norm.includes(cn)) score += 10;
+    words.forEach(w=>{ if(cn.includes(w)) score += 1; });
+    if(score>bestScore){ bestScore=score; best=c; bestKey=key; }
+  });
+  return bestScore>0 ? {documento:bestKey, nome:best.razao_social} : null;
+}
+let codigoIndex = {};
+function rebuildCodigoIndex(){
+  codigoIndex = {};
+  Object.keys(clientesDB).forEach(doc=>{
+    const codigos = clientesDB[doc].codigos || {};
+    Object.keys(codigos).forEach(k=>{ codigoIndex[`${k}_${codigos[k]}`] = doc; });
+  });
+}
+// Resolve CNPJ/CPF só pelo NOME (usado na tela de Cadastros/Locativa, sem código de título).
+function resolverCnpjPorNome(nome){
+  const norm = normalizeText(nome);
+  const words = norm.split(/\s+/).filter(w=>w.length>2);
+  let best=null, bestScore=0, bestKey=null;
+  Object.keys(clientesDB).forEach(key=>{
+    const c = clientesDB[key];
+    const cn = normalizeText(c.razao_social);
+    let score = 0;
+    if(cn.includes(norm) || norm.includes(cn)) score += 10;
+    words.forEach(w=>{ if(cn.includes(w)) score += 1; });
+    if(score>bestScore){ bestScore=score; best=c; bestKey=key; }
+  });
+  return bestScore>0 ? {documento:bestKey, nome:best.razao_social} : null;
+}
+
+const IG_CNPJ = "02687781000160";
+
+/* =========================================================================
+   CADASTRO — Contratos, Aplicações, Contas fixas (localStorage + merge com
+   seed — nunca perde o que o usuário editou, só acrescenta o que for novo)
+   ========================================================================= */
+const CONTRATOS_SEED = [
+  {contrato:"44599", cliente:"TANIA REGINA VEFAGO", imovel:"AV. GETULIO VARGAS,299 - 105", codigoDominio:18, contaReceita:864, direto:false},
+  {contrato:"44600", cliente:"TANIA REGINA VEFAGO", imovel:"AV. GETULIO VARGAS,299 - 106", codigoDominio:18, contaReceita:864, direto:false},
+  {contrato:"45083", cliente:"JULIA NUNES SOARES", imovel:"AV. GETULIO VARGAS,299 - 102", codigoDominio:19, contaReceita:865, direto:false},
+  {contrato:"45265", cliente:"TTK SOLUCOES TEXTEIS LTDA", imovel:"AV. GETULIO VARGAS,299 - 104", codigoDominio:20, contaReceita:880, direto:false},
+  {contrato:"45595", cliente:"KARLA TEIXEIRA KLEIN FERNANDES", imovel:"AV. GETULIO VARGAS,299 - 103", codigoDominio:21, contaReceita:867, direto:false},
+  {contrato:"47360", cliente:"TTK SOLUCOES TEXTEIS LTDA", imovel:"AV. GETULIO VARGAS,299 - 107", codigoDominio:20, contaReceita:880, direto:false},
+  {contrato:"", cliente:"ARLINDO ROCHA ADVOGADOS ASSOCIADOS", imovel:"(contrato direto, fora da Locativa)", codigoDominio:13, contaReceita:null, direto:true},
+];
+const APLICACOES_SEED = [
+  {titulo:"17206001069", conta:null},
+];
+const CONTAS_FIXAS_SEED = [
+  {chave:"banco", desc:"Banco Unicred (caixa)", conta:8},
+  {chave:"taxaAdm", desc:"Taxas Administrativas (comissão Locativa)", conta:750},
+  {chave:"despBancaria", desc:"Despesas Bancárias (tarifa de transferência)", conta:384},
+  {chave:"iptuRepasse", desc:"IPTU (quando descontado no repasse)", conta:878},
+  {chave:"manutencao", desc:"Manutenção de apartamento (quando houver)", conta:332},
+  {chave:"impostosAdiantados", desc:"Adiantamento a Locativa (PIS/COFINS/CSLL)", conta:736},
+];
+function loadWithMerge(key, seed, keyFn){
+  let saved = [];
+  try{ const raw = localStorage.getItem(key); saved = raw ? JSON.parse(raw) : []; }catch(e){ saved = []; }
+  const savedKeys = new Set(saved.map(keyFn));
+  return saved.concat(seed.filter(s=>!savedKeys.has(keyFn(s))));
+}
+function saveList(key, list){ try{ localStorage.setItem(key, JSON.stringify(list)); }catch(e){} }
+let contratosDB = loadWithMerge("ig_contratos", CONTRATOS_SEED, r=>r.contrato+"|"+r.cliente);
+let aplicacoesDB = loadWithMerge("ig_aplicacoes", APLICACOES_SEED, r=>r.titulo);
+let contasFixasDB = loadWithMerge("ig_contas_fixas", CONTAS_FIXAS_SEED, r=>r.chave);
+function getContrato(contrato){ return contratosDB.find(c=>String(c.contrato).trim()===String(contrato).trim()) || null; }
+function getContratoPorCliente(nome){ return contratosDB.find(c=>normalizeText(c.cliente)===normalizeText(nome)) || null; }
+function getAplicacao(titulo){ return aplicacoesDB.find(a=>String(a.titulo).trim()===String(titulo).trim()) || null; }
+function getContaFixa(chave){ const r = contasFixasDB.find(c=>c.chave===chave); return r ? r.conta : null; }
+
+function renderContratosTable(){
+  const tbl = document.getElementById("contratosTable");
+  tbl.innerHTML = `<thead><tr><th>Contrato</th><th>Cliente</th><th>Imóvel</th><th>Cód. Domínio</th><th>Conta Receita</th><th>Direto</th><th></th></tr></thead><tbody>` +
+    contratosDB.map((c,i)=>`<tr class="${c.direto && !c.contaReceita ? 'flag':''}">
+      <td class="cell"><input class="cell-input" value="${c.contrato||''}" onchange="updateContrato(${i},'contrato',this.value)"></td>
+      <td class="cell"><input class="cell-input wide" value="${c.cliente||''}" onchange="updateContrato(${i},'cliente',this.value)"></td>
+      <td class="cell"><input class="cell-input wide" value="${c.imovel||''}" onchange="updateContrato(${i},'imovel',this.value)"></td>
+      <td class="cell"><input class="cell-input" style="width:70px" value="${c.codigoDominio??''}" onchange="updateContrato(${i},'codigoDominio',this.value)"></td>
+      <td class="cell"><input class="cell-input" style="width:70px" value="${c.contaReceita??''}" onchange="updateContrato(${i},'contaReceita',this.value)"></td>
+      <td style="text-align:center"><input type="checkbox" ${c.direto?'checked':''} onchange="updateContrato(${i},'direto',this.checked)"></td>
+      <td><button class="btn ghost small" onclick="removeContrato(${i})">✕</button></td>
+    </tr>`).join("") + `</tbody>`;
+}
+function updateContrato(i, field, val){
+  if(field==="codigoDominio"||field==="contaReceita"){ contratosDB[i][field] = String(val).trim()===""?null:Number(val); }
+  else if(field==="direto"){ contratosDB[i][field] = val; }
+  else { contratosDB[i][field] = val; }
+  saveList("ig_contratos", contratosDB);
+}
+function addContratoRow(){ contratosDB.push({contrato:"",cliente:"",imovel:"",codigoDominio:null,contaReceita:null,direto:false}); saveList("ig_contratos",contratosDB); renderContratosTable(); }
+function removeContrato(i){ contratosDB.splice(i,1); saveList("ig_contratos",contratosDB); renderContratosTable(); }
+
+function renderAplicacoesTable(){
+  const tbl = document.getElementById("aplicacoesTable");
+  tbl.innerHTML = `<thead><tr><th>Título</th><th>Conta Domínio</th><th></th></tr></thead><tbody>` +
+    aplicacoesDB.map((a,i)=>`<tr class="${a.conta==null?'flag':''}">
+      <td class="cell"><input class="cell-input wide" value="${a.titulo||''}" onchange="updateAplicacao(${i},'titulo',this.value)"></td>
+      <td class="cell"><input class="cell-input" style="width:80px" value="${a.conta??''}" onchange="updateAplicacao(${i},'conta',this.value)"></td>
+      <td><button class="btn ghost small" onclick="removeAplicacao(${i})">✕</button></td>
+    </tr>`).join("") + `</tbody>`;
+}
+function updateAplicacao(i, field, val){
+  aplicacoesDB[i][field] = field==="conta" ? (String(val).trim()===""?null:Number(val)) : val;
+  saveList("ig_aplicacoes", aplicacoesDB);
+}
+function addAplicacaoRow(){ aplicacoesDB.push({titulo:"",conta:null}); saveList("ig_aplicacoes",aplicacoesDB); renderAplicacoesTable(); }
+function removeAplicacao(i){ aplicacoesDB.splice(i,1); saveList("ig_aplicacoes",aplicacoesDB); renderAplicacoesTable(); }
+
+function renderContasFixasTable(){
+  const tbl = document.getElementById("contasFixasTable");
+  tbl.innerHTML = `<thead><tr><th>Uso</th><th>Conta</th></tr></thead><tbody>` +
+    contasFixasDB.map((c,i)=>`<tr>
+      <td>${c.desc}</td>
+      <td class="cell"><input class="cell-input" style="width:80px" value="${c.conta??''}" onchange="updateContaFixa(${i},this.value)"></td>
+    </tr>`).join("") + `</tbody>`;
+}
+function updateContaFixa(i, val){ contasFixasDB[i].conta = String(val).trim()===""?null:Number(val); saveList("ig_contas_fixas", contasFixasDB); }
+
+/* =========================================================================
+   PARSER — Recibo de Repasse da Locativa
+   Cada bloco começa em "CONTRATO: N" / "LOCATÁRIO: ..." / "ENDEREÇO: ..." e
+   segue com linhas "CÓDIGO=Descrição  <Débito|-> <Crédito|->". O bloco
+   "CONTRATO: 0" reúne os itens que não são de um contrato específico
+   (impostos adiantados, despesa bancária geral).
+   ========================================================================= */
+const LOC_ITEM_RE = /^([A-Z0-9]{2,6})=(.+?)\s+(-|R\$\s*[\d.,]+)\s+(-|R\$\s*[\d.,]+)$/;
+function parseLocativaValor(campo){ return campo==="-" ? null : parseBRL(campo.replace(/^R\$\s*/,"")); }
+function parseLocativa(allLines){
+  const contratos = [];
+  let atual = null;
+  let anoMes = null;
+  let tituloNumero = null, tituloValor = null;
+  let somaDebitos = null, somaCreditos = null;
+  allLines.forEach(line=>{
+    const amc = line.match(/Ano\/M.s:\s*(\d{4})(\d{2})/);
+    if(amc){ anoMes = {y:parseInt(amc[1]), m:parseInt(amc[2])}; }
+    const cm = line.match(/^CONTRATO:\s*(\S+)/);
+    if(cm){ atual = {contrato: cm[1], locatario:"", endereco:"", itens:[]}; contratos.push(atual); return; }
+    const lm = line.match(/^LOCAT.RIO:\s*(.*)/);
+    if(lm && atual){ atual.locatario = lm[1].trim(); return; }
+    const em = line.match(/^ENDERE.O:\s*(.*)/);
+    if(em && atual){ atual.endereco = em[1].trim(); return; }
+    const somaM = line.match(/Soma de D.bitos\/Cr.ditos\s+R\$\s*([\d.,]+)\s+R\$\s*([\d.,]+)/);
+    if(somaM){ somaDebitos = parseBRL(somaM[1]); somaCreditos = parseBRL(somaM[2]); return; }
+    const tituloM = line.match(/T.tulo:(\S+)\s*-\s*R\$\s*([\d.,]+)/);
+    if(tituloM){ tituloNumero = tituloM[1]; tituloValor = parseBRL(tituloM[2]); return; }
+    const im = line.match(LOC_ITEM_RE);
+    if(im && atual){
+      const [, codigo, desc, debCampo, credCampo] = im;
+      const deb = parseLocativaValor(debCampo);
+      const cred = parseLocativaValor(credCampo);
+      const valor = deb!=null ? -deb : cred; // negativo = débito (desconto no repasse), positivo = crédito (a favor)
+      atual.itens.push({codigo, desc: desc.trim(), valor});
+    }
+  });
+  return {contratos, anoMes, tituloNumero, tituloValor, somaDebitos, somaCreditos};
+}
+function classificarItemLocativa(codigo){
+  if(codigo==="A01") return "aluguel";
+  if(codigo==="A09") return "agua";
+  if(codigo==="D99") return "comissao";
+  if(codigo==="D00") return "despBancaria";
+  if(codigo==="A150") return "pis";
+  if(codigo==="A151") return "cofins";
+  if(codigo==="A152") return "csll";
+  if(/^D\d+$/.test(codigo)) return "outroDebito";
+  if(/^A\d+$/.test(codigo)) return "outroCredito";
+  return "outro";
+}
+
+/* =========================================================================
+   APLICAÇÃO FINANCEIRA (Unicred) — mesma lógica da Aluguéis Mantovani:
+   "Rendimento Pago" (resgate do mês) vira a NFS de resgate, IR = 15% (bate
+   com a coluna "IR Retido" do relatório); "Rendimento Período" é o rendimento
+   contábil do mês inteiro (inclusive o que ficou aplicado) — lançamento à
+   parte, não tem NF.
+   ========================================================================= */
+function findDataReferenciaAplicacao(itemsAllPages){
+  for(const items of itemsAllPages){
+    const byY = {};
+    items.forEach(it=>{ const y = Math.round(it.y); (byY[y]=byY[y]||[]).push(it); });
+    for(const y of Object.keys(byY)){
+      const line = byY[y].sort((a,b)=>a.x-b.x).map(it=>it.text).join(" ");
+      const m = line.match(/Valores em\s*(\d{2}\/\d{2}\/\d{4})/i);
+      if(m) return brDateToParts(m[1]);
+    }
+  }
+  return null;
+}
+// Layout de 1 linha por título (a IG só tem um CDB hoje): agrupa por Y (linha
+// da tabela) e lê as colunas na ordem impressa — mais simples e mais robusto
+// que casar por rótulo de coluna quando há só uma ou poucas linhas de dado.
+function parseAplicacaoFinanceira(itemsAllPages){
+  const linhas = [];
+  itemsAllPages.forEach(items=>{
+    const byY = {};
+    items.forEach(it=>{ const y = Math.round(it.y); (byY[y]=byY[y]||[]).push(it); });
+    Object.keys(byY).forEach(y=>{
+      const rowItems = byY[y].sort((a,b)=>a.x-b.x);
+      const rowText = rowItems.map(it=>it.text).join(" ");
+      const tm = rowText.match(/^(\d{8,})\s+(\d{2}\/\d{2}\/\d{4})\s+(\d{2}\/\d{2}\/\d{4})\s+([\d.,]+)\s+([\d.,]+%\s*\S+)\s+([\d.,]+)\s+([\d.,]+)\s+([\d.,]+)\s+([\d.,]+)\s+([\d.,]+)\s+([\d.,]+)\s+([\d.,]+)/);
+      if(!tm) return;
+      linhas.push({
+        titulo: tm[1],
+        dataAplicacao: brDateToParts(tm[2]),
+        dataVencimento: brDateToParts(tm[3]),
+        valorAplicado: parseBRL(tm[4]),
+        saldoBrutoAnterior: parseBRL(tm[6]),
+        resgate: parseBRL(tm[7]),
+        reversaoRendimento: parseBRL(tm[8]),
+        rendimentoPago: parseBRL(tm[9]),
+        iofRetido: parseBRL(tm[10]),
+        irRetido: parseBRL(tm[11]),
+        rendimentoPeriodo: parseBRL(tm[12]),
+      });
+    });
+  });
+  return linhas;
+}
+// Acha, no extrato, a linha "RESGATE APLICACAO FINANCEIRA" — o relatório de
+// Aplicação não traz a data do resgate, só o total do mês.
+function resolverDataResgate(txns){
+  const candidatos = txns.filter(t=>/RESGATE/i.test(t.descricao) && /APLICA/i.test(t.descricao));
+  return candidatos.length ? candidatos[candidatos.length-1].data : null;
+}
+
+/* =========================================================================
+   NFS (layout de importação do Domínio) — mesmo usado nas outras ferramentas
+   de aluguel do escritório (Aluguéis Mantovani)
+   ========================================================================= */
+const NFS_HEADER = ["CPF/CNPJ","Razão Social","UF","Município","Endereço","Número Documento","Série","Data","Situação","Acumulador","CFPS","Valor Serviços","Valor Descontos","Valor Dedução","Valor Contábil","Base de Calculo","Alíquota ISS","Valor ISS Normal","Valor ISS Retido","Valor IRRF","Valor PIS","Valor COFINS","Valor CSLL","Valo CRF","Valor INSS","Código do Item","Quantidade","Valor Unitário"];
+function nfsRowArray(r){
+  const row = new Array(NFS_HEADER.length).fill("");
+  row[0] = onlyDigits(r.cnpj);
+  row[1] = stripAccents(r.razaoSocial||"");
+  row[2] = "SC";
+  row[3] = "CRICIUMA";
+  row[4] = stripAccents(r.endereco||"");
+  row[5] = r.numeroDocumento||"";
+  row[6] = "U";
+  row[7] = fmtDateBR(r.data);
+  row[8] = "N";
+  row[11] = r.valor; // Valor Serviços
+  row[14] = r.valor; // Valor Contábil
+  row[19] = r.irrf||0; // Valor IRRF
+  return row;
+}
+function downloadNfsXlsx(filename, rows){
+  downloadXlsx(filename, [NFS_HEADER, ...rows.map(nfsRowArray)], "NFS");
+}
+function downloadNfsTxt(filename, rows){
+  const moneyIdx = [11,12,13,14,15,17,18,19,20,21,22,23,24,26,27];
+  const lines = rows.map(r=> nfsRowArray(r).map((v,i)=> moneyIdx.includes(i) ? fmtValorTxt(v) : v).join(";"));
+  downloadText(filename, lines.join("\r\n") + "\r\n");
+}
+
+/* =========================================================================
+   LANÇAMENTOS (layout de importação do Domínio)
+   ========================================================================= */
+const LANC_HEADER = ["Data","Débito","Crédito","Valor","Cód. Hist.","Complemento Histórico","Inicia Lote","Código Emp.","Centro de Custo Débito","Centro de Custo Crédito"];
+function lancRowArray(r, codEmp){
+  return [r.data?fmtDateBR(r.data):"", r.debito??"", r.credito??"", r.valor, r.codHist??"", stripAccents(r.hist||r.complemento||""), r.iniciaLote??"", codEmp||"", "", ""];
+}
+function downloadLancamentosXlsx(filename, rows, codEmp){
+  downloadXlsx(filename, [LANC_HEADER, ...rows.map(r=>lancRowArray(r,codEmp))], "Lancamentos");
+}
+function downloadLancamentosTxt(filename, rows, codEmp){
+  const lines = rows.map(r=>{
+    const arr = lancRowArray(r, codEmp);
+    return arr.map((v,i)=> i===3 ? fmtValorTxt(v) : v).join(";");
+  });
+  downloadText(filename, lines.join("\r\n") + "\r\n");
+}
+
+/* =========================================================================
+   TAB LOCATIVA — pipeline principal
+   ========================================================================= */
+let locativaFileState = null, extratoLocState = null, aplicacaoFileState = null;
+wireDropzone("locativaDrop","locativaFile", (f,d)=>{ locativaFileState = f; markDropDone(d, f.name); checkReadyLoc(); });
+wireDropzone("extratoLocDrop","extratoLocFile", (f,d)=>{ extratoLocState = f; markDropDone(d, f.name); checkReadyLoc(); });
+wireDropzone("aplicacaoDrop","aplicacaoFile", (f,d)=>{ aplicacaoFileState = f; markDropDone(d, f.name); checkReadyLoc(); });
+function checkReadyLoc(){ document.getElementById("processBtnLoc").disabled = !(locativaFileState && extratoLocState); }
+
+let locRepasseState = null, locLancamentoRows = [], locRevenueRows = [], locRendimentoRows = [], locResgateRows = [];
+async function processarLocativa(){
+  const status = document.getElementById("mainStatusLoc");
+  status.classList.remove("hidden","err"); status.textContent = "Processando...";
+  try{
+    const locLines = (await extractPdfAllLines(locativaFileState)).flat();
+    const repasse = parseLocativa(locLines);
+    if(!repasse.tituloValor) throw new Error("Não consegui achar o valor do Título no recibo — confere se é o PDF certo.");
+    locRepasseState = repasse;
+
+    const extratoLines = (await extractPdfAllLines(extratoLocState)).flat();
+    const txns = parseExtratoUnicred(extratoLines);
+    const tedTxn = txns.find(t=> Math.round(Math.abs(t.valor)*100)===Math.round(repasse.tituloValor*100) && /LOCATIVA/i.test(t.descricao));
+    const dataRecebimento = tedTxn ? tedTxn.data : null;
+
+    // O "Ano/Mês" do recibo já É a competência do aluguel (mês anterior ao repasse,
+    // que sempre cai no mês seguinte) — não subtrai mais um mês aqui.
+    const mesAnterior = repasse.anoMes ? `${String(repasse.anoMes.m).padStart(2,"0")}/${repasse.anoMes.y}` : "";
+
+    // ---- soma os itens de cada contrato + separa o bloco "0" (geral) ----
+    let taxaAdm=0, despBancaria=0, impostos=0, manutencao=0, iptu=0;
+    const revenue = []; // uma linha por contrato com aluguel/água
+    const semClassificar = [];
+    repasse.contratos.forEach(ct=>{
+      let aluguel=0, agua=0, temItemContrato=false;
+      ct.itens.forEach(it=>{
+        const tipo = classificarItemLocativa(it.codigo);
+        if(tipo==="aluguel"){ aluguel += it.valor; temItemContrato=true; }
+        else if(tipo==="agua"){ agua += it.valor; temItemContrato=true; }
+        else if(tipo==="comissao"){ taxaAdm += Math.abs(it.valor); temItemContrato=true; }
+        else if(tipo==="despBancaria"){ despBancaria += Math.abs(it.valor); temItemContrato=true; }
+        else if(tipo==="pis" || tipo==="cofins" || tipo==="csll"){ impostos += Math.abs(it.valor); temItemContrato=true; }
+        else if(tipo==="outroDebito" && /manuten/i.test(it.desc)){ manutencao += Math.abs(it.valor); temItemContrato=true; }
+        else if(tipo==="outroDebito" && /iptu/i.test(it.desc)){ iptu += Math.abs(it.valor); temItemContrato=true; }
+        else { semClassificar.push({contrato:ct.contrato, ...it}); }
+      });
+      if(ct.contrato!=="0" && (aluguel!==0 || agua!==0)){
+        const cad = getContrato(ct.contrato);
+        revenue.push({
+          contrato: ct.contrato, cliente: cad?cad.cliente:ct.locatario, imovel: cad?cad.imovel:ct.endereco,
+          conta: cad?cad.contaReceita:null, valor: aluguel+agua, aluguel, agua, numeroDocumento:"",
+          flag: !cad || cad.contaReceita==null,
+        });
+      }
+    });
+
+    locLancamentoRows = [
+      {chave:"banco", conta:getContaFixa("banco"), lado:"D", valor:repasse.tituloValor, hist:`RECEBIMENTO REF. ALUGUEIS ${mesAnterior} - LOCATIVA`, editavel:false},
+      {chave:"taxaAdm", conta:getContaFixa("taxaAdm"), lado:"D", valor:taxaAdm, hist:`PAGAMENTO REF. TAXAS ADMINISTRATIVAS NO REPASSE DE ${mesAnterior} - LOCATIVA`, editavel:true},
+      {chave:"despBancaria", conta:getContaFixa("despBancaria"), lado:"D", valor:despBancaria, hist:`PAGAMENTO REF. DESPESAS BANCÁRIAS NO REPASSE DE ${mesAnterior} - LOCATIVA`, editavel:true},
+    ];
+    if(manutencao>0) locLancamentoRows.push({chave:"manutencao", conta:getContaFixa("manutencao"), lado:"D", valor:manutencao, hist:`PAGAMENTO REF. MANUTENÇÃO NO REPASSE DE ${mesAnterior} - LOCATIVA`, editavel:true});
+    if(iptu>0) locLancamentoRows.push({chave:"iptuRepasse", conta:getContaFixa("iptuRepasse"), lado:"D", valor:iptu, hist:`PAGAMENTO REF. IPTU NO REPASSE DE ${mesAnterior} - LOCATIVA`, editavel:true});
+    locLancamentoRows.push({chave:"impostosAdiantados", conta:getContaFixa("impostosAdiantados"), lado:"C", valor:impostos, hist:`RECEBIMENTO REF. IMPOSTOS ADIANTADOS ${mesAnterior} - LOCATIVA`, editavel:true});
+
+    locRevenueRows = revenue;
+
+    // ---- aplicação financeira (opcional) ----
+    locRendimentoRows = []; locResgateRows = [];
+    if(aplicacaoFileState){
+      const itemsAllPages = await extractPdfAllItems(aplicacaoFileState);
+      const dataReferencia = findDataReferenciaAplicacao(itemsAllPages);
+      const linhas = parseAplicacaoFinanceira(itemsAllPages);
+      linhas.forEach(l=>{
+        const apl = getAplicacao(l.titulo);
+        if(Math.abs(l.rendimentoPeriodo)>0.004){
+          locRendimentoRows.push({titulo:l.titulo, conta:apl?apl.conta:null, valor:l.rendimentoPeriodo, data:dataReferencia});
+        }
+        if(Math.abs(l.rendimentoPago)>0.004){
+          locResgateRows.push({titulo:l.titulo, conta:apl?apl.conta:null, rendimentoPago:l.rendimentoPago, irRetido:l.irRetido, dataResgate: resolverDataResgate(txns) || dataReferencia, numeroDocumento:""});
+        }
+      });
+    }
+
+    status.classList.add("hidden");
+    renderLocativaResult(dataRecebimento, semClassificar);
+  }catch(err){
+    status.classList.add("err"); status.textContent = "Erro: " + err.message;
+    console.error(err);
+  }
+}
+
+function totalLancDebitos(){ return locLancamentoRows.filter(r=>r.lado==="D").reduce((s,r)=>s+r.valor,0); }
+function totalLancCreditos(){ return locLancamentoRows.filter(r=>r.lado==="C").reduce((s,r)=>s+r.valor,0) + locRevenueRows.reduce((s,r)=>s+r.valor,0); }
+
+function renderLocativaResult(dataRecebimento, semClassificar){
+  const box = document.getElementById("resultCardLoc");
+  box.classList.remove("hidden");
+  const saldo = Math.round((totalLancDebitos()-totalLancCreditos())*100)/100;
+  let html = `<div class="card">
+    <div class="section-title">Lançamento composto — repasse Locativa${dataRecebimento?` (recebido em ${fmtDateBR(dataRecebimento)})`:' (data do TED não encontrada no extrato — confira)'}</div>
+    <div class="summary-row">
+      <div class="item"><div class="k">Título líquido</div><div class="v">R$ ${fmtBRL(locRepasseState.tituloValor)}</div></div>
+      <div class="item"><div class="k">Total débitos</div><div class="v">R$ ${fmtBRL(totalLancDebitos())}</div></div>
+      <div class="item"><div class="k">Total créditos</div><div class="v">R$ ${fmtBRL(totalLancCreditos())}</div></div>
+      <div class="item"><div class="k">Diferença</div><div class="v" style="color:${saldo===0?'var(--green-ink)':'var(--red)'}">R$ ${fmtBRL(saldo)}</div></div>
+    </div>
+    ${saldo!==0 ? '<div class="help" style="color:var(--red)">O lançamento não fecha — confira as contas/valores abaixo antes de exportar (a conta de receita de algum contrato pode estar sem valor de água/aluguel batendo com o repasse).</div>' : ''}
+    <div class="table-wrap"><table class="preview"><thead><tr><th>Lado</th><th>Conta</th><th>Histórico</th><th>Valor</th></tr></thead><tbody>` +
+    locLancamentoRows.map((r,i)=>`<tr class="${r.conta==null?'flag':''}">
+      <td>${r.lado}</td>
+      <td class="cell"><input class="cell-input" style="width:60px" value="${r.conta??''}" onchange="updateLancLinhaFixa(${i},'conta',this.value)"></td>
+      <td class="cell"><input class="cell-input wide" value="${r.hist}" onchange="updateLancLinhaFixa(${i},'hist',this.value)"></td>
+      <td class="cell"><input class="cell-input num" value="${fmtBRL(r.valor)}" onchange="updateLancLinhaFixa(${i},'valor',this.value)"></td>
+    </tr>`).join("") + `</tbody></table></div>
+
+    <div class="section-title" style="margin-top:18px;">Receita de aluguel por contrato (crédito)</div>
+    <div class="table-wrap"><table class="preview"><thead><tr><th>Contrato</th><th>Cliente</th><th>Conta</th><th>Aluguel</th><th>Água</th><th>Valor (NF)</th><th>Nº NF</th></tr></thead><tbody>` +
+    locRevenueRows.map((r,i)=>`<tr class="${r.flag?'flag':''}">
+      <td>${r.contrato}</td>
+      <td>${r.cliente}</td>
+      <td class="cell"><input class="cell-input" style="width:60px" value="${r.conta??''}" onchange="updateRevenueRow(${i},'conta',this.value)"></td>
+      <td class="cell num">${fmtBRL(r.aluguel)}</td>
+      <td class="cell num">${fmtBRL(r.agua)}</td>
+      <td class="cell"><input class="cell-input num" value="${fmtBRL(r.valor)}" onchange="updateRevenueRow(${i},'valor',this.value)"></td>
+      <td class="cell"><input class="cell-input" style="width:70px" value="${r.numeroDocumento||''}" onchange="updateRevenueRow(${i},'numeroDocumento',this.value)"></td>
+    </tr>`).join("") + `</tbody></table></div>`;
+
+  if(semClassificar.length){
+    html += `<div class="help" style="color:var(--amber);margin-top:10px;">Itens do recibo não reconhecidos automaticamente (confira se precisam virar linha de manutenção/IPTU/outro lançamento):<br>` +
+      semClassificar.map(it=>`Contrato ${it.contrato} — ${it.codigo}=${it.desc}: ${fmtBRL(it.valor)}`).join("<br>") + `</div>`;
+  }
+
+  html += `<div class="btn-row">
+    <button class="btn" onclick="downloadLocLancamentosXlsx()">Lançamentos Repasse — .xlsx</button>
+    <button class="btn ghost" onclick="downloadLocLancamentosTxt()">Lançamentos Repasse — .txt</button>
+    <button class="btn" onclick="downloadNfsAluguelXlsx()">NFS Aluguel — .xlsx</button>
+    <button class="btn ghost" onclick="downloadNfsAluguelTxt()">NFS Aluguel — .txt</button>
+  </div></div>`;
+
+  if(locRendimentoRows.length){
+    html += `<div class="card"><div class="section-title">Rendimento do mês (lançamento contábil, sem NF)</div>
+    <div class="help">Rendimento do período (inclusive o que ficou aplicado) — débito na conta da própria aplicação, crédito em receita financeira (edite a conta de crédito conforme o plano de contas da IG).</div>
+    <div class="table-wrap"><table class="preview"><thead><tr><th>Título</th><th>Conta (débito)</th><th>Conta Receita Financeira (crédito)</th><th>Valor</th></tr></thead><tbody>` +
+      locRendimentoRows.map((r,i)=>`<tr class="${r.conta==null?'flag':''}">
+        <td>${r.titulo}</td>
+        <td class="cell"><input class="cell-input" style="width:70px" value="${r.conta??''}" onchange="updateRendimentoRow(${i},'conta',this.value)"></td>
+        <td class="cell"><input class="cell-input" style="width:70px" value="${r.creditoReceita??''}" onchange="updateRendimentoRow(${i},'creditoReceita',this.value)"></td>
+        <td class="cell"><input class="cell-input num" value="${fmtBRL(r.valor)}" onchange="updateRendimentoRow(${i},'valor',this.value)"></td>
+      </tr>`).join("") + `</tbody></table></div>
+    <div class="btn-row"><button class="btn" onclick="downloadRendimentoXlsx()">Lançamento Rendimento — .xlsx</button><button class="btn ghost" onclick="downloadRendimentoTxt()">Lançamento Rendimento — .txt</button></div>
+    </div>`;
+  }
+
+  if(locResgateRows.length){
+    html += `<div class="card"><div class="section-title">Resgate no mês — NFS (rendimento pago = valor da NF, IRRF = 15%)</div>
+    <div class="table-wrap"><table class="preview"><thead><tr><th>Título</th><th>Rendimento Pago (Valor NF)</th><th>IRRF (15%)</th><th>Data Resgate</th><th>Nº Doc. NFS</th></tr></thead><tbody>` +
+      locResgateRows.map((r,i)=>`<tr class="${r.dataResgate?'':'flag'}">
+        <td>${r.titulo}</td>
+        <td class="cell"><input class="cell-input num" value="${fmtBRL(r.rendimentoPago)}" onchange="updateResgateRow(${i},'rendimentoPago',this.value)"></td>
+        <td class="cell"><input class="cell-input num" value="${fmtBRL(r.irRetido)}" onchange="updateResgateRow(${i},'irRetido',this.value)"></td>
+        <td class="cell"><input class="cell-input" style="width:80px" value="${r.dataResgate?fmtDateBR(r.dataResgate):''}" onchange="updateResgateRow(${i},'dataResgate',this.value)"></td>
+        <td class="cell"><input class="cell-input" style="width:70px" value="${r.numeroDocumento||''}" onchange="updateResgateRow(${i},'numeroDocumento',this.value)"></td>
+      </tr>`).join("") + `</tbody></table></div>
+    <div class="btn-row"><button class="btn" onclick="downloadNfsResgateXlsx()">NFS Resgate — .xlsx</button><button class="btn ghost" onclick="downloadNfsResgateTxt()">NFS Resgate — .txt</button></div>
+    </div>`;
+  }
+
+  box.innerHTML = html;
+}
+function updateLancLinhaFixa(i, field, val){
+  const r = locLancamentoRows[i];
+  if(field==="conta"){ r.conta = String(val).trim()===""?null:Number(val); }
+  else if(field==="valor"){ const n=parseBRL(val); if(n!=null) r.valor=n; }
+  else { r[field] = val; }
+  renderLocativaResult(null, []);
+}
+function updateRevenueRow(i, field, val){
+  const r = locRevenueRows[i];
+  if(field==="conta"){ r.conta = String(val).trim()===""?null:Number(val); r.flag=false; }
+  else if(field==="valor"){ const n=parseBRL(val); if(n!=null) r.valor=n; }
+  else { r[field] = val; }
+}
+function updateRendimentoRow(i, field, val){
+  const r = locRendimentoRows[i];
+  if(field==="valor"){ const n=parseBRL(val); if(n!=null) r.valor=n; }
+  else if(field==="conta"){ r.conta = String(val).trim()===""?null:Number(val); }
+  else { r[field] = String(val).trim()===""?null:Number(val); }
+}
+function updateResgateRow(i, field, val){
+  const r = locResgateRows[i];
+  if(field==="dataResgate"){ r.dataResgate = brDateToParts(val); }
+  else if(field==="rendimentoPago" || field==="irRetido"){ const n=parseBRL(val); if(n!=null) r[field]=n; }
+  else { r[field] = val; }
+}
+function downloadLocLancamentosXlsx(){
+  const codEmp = "";
+  const rows = locLancamentoRows.map((r,i)=>({data:null, debito: r.lado==="D"?r.conta:null, credito: r.lado==="C"?r.conta:null, valor:r.valor, hist:r.hist, iniciaLote: i===0?1:""}))
+    .concat(locRevenueRows.map(r=>({data:null, debito:null, credito:r.conta, valor:r.valor, hist:`RECEBIMENTO NF Nº ${r.numeroDocumento||'?'} - ${r.cliente}`, codHist:100, iniciaLote:""})));
+  downloadLancamentosXlsx("lancamentos_locativa.xlsx", rows, codEmp);
+}
+function downloadLocLancamentosTxt(){
+  const codEmp = "";
+  const rows = locLancamentoRows.map((r,i)=>({data:null, debito: r.lado==="D"?r.conta:null, credito: r.lado==="C"?r.conta:null, valor:r.valor, hist:r.hist, iniciaLote: i===0?1:""}))
+    .concat(locRevenueRows.map(r=>({data:null, debito:null, credito:r.conta, valor:r.valor, hist:`RECEBIMENTO NF Nº ${r.numeroDocumento||'?'} - ${r.cliente}`, codHist:100, iniciaLote:""})));
+  downloadLancamentosTxt("lancamentos_locativa.txt", rows, codEmp);
+}
+function nfsInfoParaContrato(r){
+  const info = resolverCnpjPorNome(r.cliente);
+  return {
+    cnpj: info?info.documento:"", razaoSocial: info?info.nome:r.cliente,
+    endereco: r.imovel||"", numeroDocumento: r.numeroDocumento||"", data: null, valor: r.valor, irrf:0,
+  };
+}
+function downloadNfsAluguelXlsx(){ downloadNfsXlsx("nfs_aluguel_ig.xlsx", locRevenueRows.map(nfsInfoParaContrato)); }
+function downloadNfsAluguelTxt(){ downloadNfsTxt("nfs_aluguel_ig.txt", locRevenueRows.map(nfsInfoParaContrato)); }
+function downloadRendimentoXlsx(){
+  const rows = locRendimentoRows.map((r,i)=>({data:r.data, debito:r.conta, credito:r.creditoReceita, valor:r.valor, hist:`RECEBIMENTO REF. RENDIMENTO DE APLICAÇÃO FINANCEIRA - TÍTULO ${r.titulo}`, iniciaLote:i===0?1:""}));
+  downloadLancamentosXlsx("lancamento_rendimento_ig.xlsx", rows, "");
+}
+function downloadRendimentoTxt(){
+  const rows = locRendimentoRows.map((r,i)=>({data:r.data, debito:r.conta, credito:r.creditoReceita, valor:r.valor, hist:`RECEBIMENTO REF. RENDIMENTO DE APLICAÇÃO FINANCEIRA - TÍTULO ${r.titulo}`, iniciaLote:i===0?1:""}));
+  downloadLancamentosTxt("lancamento_rendimento_ig.txt", rows, "");
+}
+function nfsInfoParaResgate(r){
+  return {cnpj:"", razaoSocial:"UNICRED", endereco:"", numeroDocumento:r.numeroDocumento||"", data:r.dataResgate, valor:r.rendimentoPago, irrf:r.irRetido};
+}
+function downloadNfsResgateXlsx(){ downloadNfsXlsx("nfs_resgate_ig.xlsx", locResgateRows.map(nfsInfoParaResgate)); }
+function downloadNfsResgateTxt(){ downloadNfsTxt("nfs_resgate_ig.txt", locResgateRows.map(nfsInfoParaResgate)); }
+
+/* =========================================================================
+   TAB BAIXA DE SERVIÇO — casa recebimentos do extrato (PIX/TED de clientes
+   fora do repasse único da Locativa, ex. Arlindo, Ester) com os títulos
+   "Aberta" do Contas a Receber, por nome + valor exato.
+   ========================================================================= */
+let contasState = null, extratoState = null;
+wireDropzone("contasDrop","contasFile", async (f,d)=>{
+  const status = document.getElementById("mainStatus");
+  status.classList.remove("hidden","err"); status.textContent = "Lendo Contas a Receber...";
+  try{
+    const parsed = await parseContasReport(f);
+    if(!parsed.empresaCnpj) throw new Error('Não achei "CNPJ:" no cabeçalho deste relatório — confere se é o PDF certo.');
+    if(!parsed.titulos.length) throw new Error("Não encontrei nenhum título neste relatório.");
+    contasState = parsed;
+    markDropDone(d, `${parsed.empresaNome} (${parsed.titulos.length} títulos)`);
+    status.classList.add("hidden");
+  }catch(err){
+    status.classList.add("err"); status.textContent = "Erro: " + err.message;
+    contasState = null;
+  }
+  checkReady();
+});
+wireDropzone("extratoDrop","extratoFile", async (f,d)=>{
+  const status = document.getElementById("mainStatus");
+  status.classList.remove("hidden","err"); status.textContent = "Lendo extrato...";
+  try{
+    const pages = await extractPdfAllLines(f);
+    extratoState = parseExtratoUnicred(pages.flat());
+    if(!extratoState.length) throw new Error("Não encontrei nenhum lançamento nesse extrato.");
+    markDropDone(d, `${extratoState.length} lançamentos`);
+    status.classList.add("hidden");
+  }catch(err){
+    status.classList.add("err"); status.textContent = "Erro: " + err.message;
+    extratoState = null;
+  }
+  checkReady();
+});
+function checkReady(){ document.getElementById("processBtn").disabled = !(contasState && extratoState); }
+
+let rowsState = [];
+function processarBaixaServico(){
+  const abertos = contasState.titulos.filter(t=> t.tipoTitulo==="cliente" && /^(ABERT|PARCIAL)/.test(normalizeText(t.situacao))).map(a=>({...a}));
+  const creditos = extratoState.filter(e=>e.valor>0 && e.nome).map(e=>({...e}));
+  const rows = [];
+
+  function buildRow(titulo, dataBaixa, valor, desconto, statusClass, statusText){
+    titulo._used = true;
+    const cnpjInfo = resolverCnpj(contasState.empresaCnpj, "cliente", titulo.codigo, titulo.nome);
+    const cls = cnpjInfo ? statusClass : "err";
+    const txt = cnpjInfo ? statusText : "CPF/CNPJ não encontrado no cadastro";
+    return {
+      numero: titulo.documento, cnpj: cnpjInfo?cnpjInfo.documento:"", nome: cnpjInfo?cnpjInfo.nome:titulo.nome,
+      vencimento: titulo.vencimento, databaixa: dataBaixa, valor: valor!=null?valor:titulo.valorParcela,
+      juros:0, multa:0, desconto: desconto||0, pis:0, cofins:0, csll:0, irrf:0,
+      statusClass: cls, statusText: txt, incluir: statusClass!=="err",
+    };
+  }
+
+  const restantes = abertos.map(a=>({...a}));
+  creditos.sort((a,b)=>partsToDate(a.data)-partsToDate(b.data)).forEach(e=>{
+    const candidatosNome = restantes.filter(a=>!a._used).map(a=>({nome:a.nome, titulo:a}));
+    const nm = findBestNameMatch(e.nome, candidatosNome);
+    if(!nm){ return; } // fica fora — provavelmente já coberto pela aba Locativa (TED único) ou não é cliente
+    const poolCliente = restantes.filter(a=> !a._used && normalizeText(a.nome)===normalizeText(nm.match.nome));
+    const found = dpSubsetExact(poolCliente, Math.round(e.valor*100));
+    if(found){
+      found.forEach(t=> rows.push(buildRow(t, e.data, e.valor, 0, null, "OK (extrato, nome + valor exato)")));
+    } else if(poolCliente.length===1 && e.valor > poolCliente[0].valorParcela){
+      // valor recebido maior que a parcela — comum quando o cliente paga a NF + um
+      // acerto à parte (ex. ressarcimento de água); a diferença fica sinalizada
+      // como "Outras" pra conferência manual em vez de ser assumida como juros.
+      const dif = Math.round((e.valor - poolCliente[0].valorParcela)*100)/100;
+      const row = buildRow(poolCliente[0], e.data, poolCliente[0].valorParcela, 0, "warn", `Recebeu ${fmtBRL(e.valor)}, NF é ${fmtBRL(poolCliente[0].valorParcela)} — diferença de ${fmtBRL(dif)} não incluída, confira (pode ser acerto de água ou juros)`);
+      rows.push(row);
+    }
+  });
+  abertos.filter(a=>!a._used).sort((a,b)=>partsToDate(a.vencimento)-partsToDate(b.vencimento)).forEach(a=>{
+    rows.push(buildRow(a, null, null, 0, "err", "Sem correspondência no extrato (pode já estar coberto pelo TED único da Locativa, na aba Locativa)"));
+  });
+
+  rowsState = rows;
+  renderResult(rowsState, contasState.empresaNome, contasState.empresaCnpj);
+}
+
+let servicoTableState = makeTableState();
+function renderResult(rows, empresaNome, empresaCnpj){
+  document.getElementById("resultCard").classList.remove("hidden");
+  servicoTableState = makeTableState();
+  renderResultTable(empresaNome, empresaCnpj);
+}
+function renderResultTable(empresaNome, empresaCnpj){
+  empresaNome = empresaNome || contasState.empresaNome; empresaCnpj = empresaCnpj || contasState.empresaCnpj;
+  const box = document.getElementById("resultCard");
+  const rows = rowsState;
+  const indexed = filterSortRows(rows, servicoTableState, r=>[r.numero,r.cnpj,r.nome,r.statusText]);
+  let html = `<div class="section-title">${empresaNome} — baixa_ser.txt</div>
+  <div class="help">Revise antes de baixar. Vermelho = sem correspondência ou CPF/CNPJ ausente (aluguel recebido junto no TED único da Locativa não aparece aqui — já é gerado na aba Locativa).</div>
+  <div class="table-toolbar"><input type="search" value="${servicoTableState.filter}" placeholder="Filtrar..." oninput="servicoTableState.filter=this.value; renderResultTable();"><span class="count">${indexed.length===rows.length?`${rows.length} linha(s)`:`${indexed.length} de ${rows.length}`}</span></div>
+  <div class="table-wrap"><table class="preview"><thead><tr>
+    ${sortTh('servicoTableState',servicoTableState,'numero','Nº Nota','renderResultTable')}
+    ${sortTh('servicoTableState',servicoTableState,'cnpj','CPF/CNPJ','renderResultTable')}
+    ${sortTh('servicoTableState',servicoTableState,'nome','Nome','renderResultTable')}
+    ${sortTh('servicoTableState',servicoTableState,'vencimento','Vencimento','renderResultTable')}
+    ${sortTh('servicoTableState',servicoTableState,'databaixa','Data Baixa','renderResultTable')}
+    ${sortTh('servicoTableState',servicoTableState,'valor','Valor','renderResultTable')}
+    <th>Juros</th><th>Multa</th><th>Desconto</th>
+    ${sortTh('servicoTableState',servicoTableState,'statusText','Status','renderResultTable')}
+    <th>Incluir</th>
+  </tr></thead><tbody>`;
+  indexed.forEach(({row:r, idx:i})=>{
+    html += `<tr class="${(r.statusClass||'')+(r.incluir===false?' excluded':'')}">
+      <td class="cell"><input class="cell-input" value="${r.numero}" onchange="updateServRow(${i},'numero',this.value)"></td>
+      <td class="cell"><input class="cell-input wide" value="${r.cnpj}" onchange="updateServRow(${i},'cnpj',this.value)"></td>
+      <td>${r.nome||''}</td>
+      <td class="cell"><input class="cell-input" value="${fmtDateBR(r.vencimento)}" onchange="updateServRow(${i},'vencimento',this.value)"></td>
+      <td class="cell"><input class="cell-input" value="${fmtDateBR(r.databaixa)}" onchange="updateServRow(${i},'databaixa',this.value)"></td>
+      <td class="cell"><input class="cell-input num" value="${fmtBRL(r.valor)}" onchange="updateServRow(${i},'valor',this.value)"></td>
+      <td class="cell"><input class="cell-input num" value="${fmtBRL(r.juros)}" onchange="updateServRow(${i},'juros',this.value)"></td>
+      <td class="cell"><input class="cell-input num" value="${fmtBRL(r.multa)}" onchange="updateServRow(${i},'multa',this.value)"></td>
+      <td class="cell"><input class="cell-input num" value="${fmtBRL(r.desconto)}" onchange="updateServRow(${i},'desconto',this.value)"></td>
+      <td>${r.statusText}</td>
+      <td style="text-align:center"><input type="checkbox" ${r.incluir===false?'':'checked'} onchange="toggleServRow(${i},this.checked)"></td>
+    </tr>`;
+  });
+  html += `</tbody></table></div>
+  <div class="btn-row">
+    <button class="btn" onclick="downloadServXlsx()">Baixar baixa_servicos.xlsx</button>
+    <button class="btn ghost" onclick="downloadServTxt()">Baixar baixa_ser.txt</button>
+  </div>`;
+  box.innerHTML = html;
+  document.getElementById("cnpjHelperCard").classList.toggle("hidden", rows.every(r=>r.cnpj));
+  document.getElementById("cnpjHelperEmpresa").textContent = `da IG (CNPJ ${empresaCnpj})`;
+}
+function updateServRow(i, field, val){
+  const r = rowsState[i];
+  if(field==="vencimento" || field==="databaixa"){ r[field] = brDateToParts(val) || null; }
+  else if(["valor","juros","multa","desconto"].includes(field)){ const n=parseBRL(val); if(n!=null) r[field]=n; }
+  else { r[field]=val; }
+}
+function toggleServRow(i, checked){ rowsState[i].incluir = checked; }
+function rowArrayServ(r){ return [r.numero, "U", onlyDigits(r.cnpj), fmtDateBR(r.vencimento), fmtDateBR(r.databaixa), r.valor, r.juros, r.multa, r.desconto, r.pis, r.cofins, r.csll, r.irrf]; }
+function downloadServXlsx(){
+  const usaveis = rowsState.filter(r=>r.incluir!==false);
+  const header = ["Número da Nota","Série do Documento","CPF/CNPJ do Cliente","Data de Vencimento da Parcela","Data da Baixa da Parcela","Valor Recebido","Valor Juros","Valor Multa","Valor Desconto","Valor PIS","Valor COFINS","Valor CSLL","Valor IRRF"];
+  downloadXlsx("baixa_servicos.xlsx", [header, ...usaveis.map(rowArrayServ)], "Baixa");
+}
+function downloadServTxt(){
+  const usaveis = rowsState.filter(r=>r.incluir!==false);
+  const lines = usaveis.map(r=> rowArrayServ(r).map((v,i)=> i>=5 ? fmtValorTxt(v) : v).join(";"));
+  downloadText("baixa_ser.txt", lines.join("\r\n") + "\r\n");
+}
+
+/* =========================================================================
+   TAB BAIXA DE PAGAMENTOS — casa débitos do extrato com Contas a Pagar
+   ========================================================================= */
+let contasPagarState = null, extratoPagarState = null, rowsStatePagar = [];
+wireDropzone("contasPagarDrop","contasPagarFile", async (f,d)=>{
+  const status = document.getElementById("mainStatusPagar");
+  status.classList.remove("hidden","err"); status.textContent = "Lendo Contas a Pagar...";
+  try{
+    const parsed = await parseContasReport(f);
+    if(!parsed.empresaCnpj) throw new Error('Não achei "CNPJ:" no cabeçalho deste relatório — confere se é o PDF certo.');
+    if(!parsed.titulos.length) throw new Error("Não encontrei nenhum título neste relatório.");
+    contasPagarState = parsed;
+    markDropDone(d, `${parsed.empresaNome} (${parsed.titulos.length} títulos)`);
+    status.classList.add("hidden");
+  }catch(err){
+    status.classList.add("err"); status.textContent = "Erro: " + err.message;
+    contasPagarState = null;
+  }
+  checkReadyPagar();
+});
+wireDropzone("extratoPagarDrop","extratoPagarFile", async (f,d)=>{
+  const status = document.getElementById("mainStatusPagar");
+  status.classList.remove("hidden","err"); status.textContent = "Lendo extrato...";
+  try{
+    const pages = await extractPdfAllLines(f);
+    extratoPagarState = parseExtratoUnicred(pages.flat());
+    if(!extratoPagarState.length) throw new Error("Não encontrei nenhum lançamento nesse extrato.");
+    markDropDone(d, `${extratoPagarState.length} lançamentos`);
+    status.classList.add("hidden");
+  }catch(err){
+    status.classList.add("err"); status.textContent = "Erro: " + err.message;
+    extratoPagarState = null;
+  }
+  checkReadyPagar();
+});
+function checkReadyPagar(){ document.getElementById("processBtnPagar").disabled = !(contasPagarState && extratoPagarState); }
+
+function processarBaixaPagar(){
+  const abertos = contasPagarState.titulos.filter(t=> normalizeText(t.situacao).startsWith("ABERT")).map(a=>({...a}));
+  const lumps = extratoPagarState.filter(e=> e.valor<0).map(e=>({data:e.data, valor:Math.abs(e.valor), descricao:e.descricao}));
+  const {results, wideResolved, unmatchedAbertos} = matchAll(lumps, abertos);
+  const rows = [];
+  const order = Object.keys(results).map(Number).sort((a,b)=> partsToDate(lumps[a].data)-partsToDate(lumps[b].data));
+  order.forEach(idx=>{
+    const isWide = wideResolved.has(idx);
+    results[idx].forEach(a=> rows.push(buildRowPagar(a, lumps[idx].data, isWide?"warn":null, isWide?"Conciliado (janela larga, conferir)":"OK")));
+  });
+  unmatchedAbertos.sort((a,b)=> partsToDate(a.vencimento)-partsToDate(b.vencimento)).forEach(a=>{
+    rows.push(buildRowPagar(a, null, "err", "Sem correspondência no extrato"));
+  });
+  rowsStatePagar = rows;
+  renderResultPagar(contasPagarState.empresaNome, contasPagarState.empresaCnpj);
+}
+function buildRowPagar(titulo, dataBaixa, statusClass, statusText){
+  const cnpjInfo = resolverCnpj(contasPagarState.empresaCnpj, "fornecedor", titulo.codigo, titulo.nome);
+  const cls = cnpjInfo ? statusClass : "err";
+  const txt = cnpjInfo ? statusText : "CPF/CNPJ não encontrado no cadastro";
+  return {
+    numero: titulo.documento, cnpj: cnpjInfo?cnpjInfo.documento:"", nome: cnpjInfo?cnpjInfo.nome:titulo.nome,
+    vencimento: titulo.vencimento, databaixa: dataBaixa, valor: titulo.valorParcela,
+    juros:0, multa:0, desconto:0, statusClass: cls, statusText: txt,
+  };
+}
+let pagarTableState = makeTableState();
+function renderResultPagar(empresaNome, empresaCnpj){
+  document.getElementById("resultCardPagar").classList.remove("hidden");
+  pagarTableState = makeTableState();
+  renderResultPagarTable(empresaNome, empresaCnpj);
+}
+function renderResultPagarTable(empresaNome, empresaCnpj){
+  empresaNome = empresaNome || contasPagarState.empresaNome; empresaCnpj = empresaCnpj || contasPagarState.empresaCnpj;
+  const box = document.getElementById("resultCardPagar");
+  const rows = rowsStatePagar;
+  const indexed = filterSortRows(rows, pagarTableState, r=>[r.numero,r.cnpj,r.nome,r.statusText]);
+  let html = `<div class="section-title">${empresaNome} — baixa_ent.txt</div>
+  <div class="help">Revise antes de baixar. Vermelho = sem CPF/CNPJ ou sem correspondência; amarelo = casou com janela larga entre vencimento e débito.</div>
+  <div class="table-toolbar"><input type="search" value="${pagarTableState.filter}" placeholder="Filtrar..." oninput="pagarTableState.filter=this.value; renderResultPagarTable();"><span class="count">${indexed.length===rows.length?`${rows.length} linha(s)`:`${indexed.length} de ${rows.length}`}</span></div>
+  <div class="table-wrap"><table class="preview"><thead><tr>
+    ${sortTh('pagarTableState',pagarTableState,'numero','Nº Nota','renderResultPagarTable')}
+    ${sortTh('pagarTableState',pagarTableState,'cnpj','CPF/CNPJ','renderResultPagarTable')}
+    ${sortTh('pagarTableState',pagarTableState,'nome','Nome','renderResultPagarTable')}
+    ${sortTh('pagarTableState',pagarTableState,'vencimento','Vencimento','renderResultPagarTable')}
+    ${sortTh('pagarTableState',pagarTableState,'databaixa','Data Baixa','renderResultPagarTable')}
+    ${sortTh('pagarTableState',pagarTableState,'valor','Valor Pago','renderResultPagarTable')}
+    <th>Juros</th><th>Multa</th><th>Desconto</th>
+    ${sortTh('pagarTableState',pagarTableState,'statusText','Status','renderResultPagarTable')}
+  </tr></thead><tbody>`;
+  indexed.forEach(({row:r, idx:i})=>{
+    html += `<tr class="${r.statusClass||''}">
+      <td class="cell"><input class="cell-input" value="${r.numero}" onchange="updateRowPagar(${i},'numero',this.value)"></td>
+      <td class="cell"><input class="cell-input wide" value="${r.cnpj}" onchange="updateRowPagar(${i},'cnpj',this.value)"></td>
+      <td>${r.nome||''}</td>
+      <td class="cell"><input class="cell-input" value="${fmtDateBR(r.vencimento)}" onchange="updateRowPagar(${i},'vencimento',this.value)"></td>
+      <td class="cell"><input class="cell-input" value="${fmtDateBR(r.databaixa)}" onchange="updateRowPagar(${i},'databaixa',this.value)"></td>
+      <td class="cell"><input class="cell-input num" value="${fmtBRL(r.valor)}" onchange="updateRowPagar(${i},'valor',this.value)"></td>
+      <td class="cell"><input class="cell-input num" value="${fmtBRL(r.juros)}" onchange="updateRowPagar(${i},'juros',this.value)"></td>
+      <td class="cell"><input class="cell-input num" value="${fmtBRL(r.multa)}" onchange="updateRowPagar(${i},'multa',this.value)"></td>
+      <td class="cell"><input class="cell-input num" value="${fmtBRL(r.desconto)}" onchange="updateRowPagar(${i},'desconto',this.value)"></td>
+      <td>${r.statusText}</td>
+    </tr>`;
+  });
+  html += `</tbody></table></div>
+  <div class="btn-row">
+    <button class="btn" onclick="downloadResultXlsxPagar()">Baixar baixa_entradas.xlsx</button>
+    <button class="btn ghost" onclick="downloadResultTxtPagar()">Baixar baixa_ent.txt</button>
+  </div>`;
+  box.innerHTML = html;
+  document.getElementById("cnpjHelperCard").classList.toggle("hidden", rows.every(r=>r.cnpj));
+  document.getElementById("cnpjHelperEmpresa").textContent = `da IG (CNPJ ${empresaCnpj})`;
+}
+function updateRowPagar(i, field, val){
+  const r = rowsStatePagar[i];
+  if(field==="vencimento" || field==="databaixa"){ r[field] = brDateToParts(val) || null; }
+  else if(["valor","juros","multa","desconto"].includes(field)){ const n=parseBRL(val); if(n!=null) r[field]=n; }
+  else { r[field]=val; }
+}
+function rowArrayPagar(r){ return [r.numero, onlyDigits(r.cnpj), fmtDateBR(r.vencimento), fmtDateBR(r.databaixa), r.valor, r.juros, r.multa, r.desconto]; }
+function downloadResultXlsxPagar(){
+  const header = ["Número da Nota","CPF/CNPJ do Fornecedor","Data de Vencimento da Parcela","Data da Baixa da Parcela","Valor Pago","Valor Juros","Valor Multa","Valor Desconto"];
+  downloadXlsx("baixa_entradas.xlsx", [header, ...rowsStatePagar.map(rowArrayPagar)], "Baixa");
+}
+function downloadResultTxtPagar(){
+  const lines = rowsStatePagar.map(r=> rowArrayPagar(r).map((v,i)=> i>=4 ? fmtValorTxt(v) : v).join(";"));
+  downloadText("baixa_ent.txt", lines.join("\r\n") + "\r\n");
+}
+
+/* =========================================================================
+   TAB LANÇAMENTOS (PADRÕES) — extrato → conta contábil
+   ========================================================================= */
+const PADROES_SEED = [
+  {keywords:["CELESC"], debito:334, credito:8, hist:"PAGAMENTO REF. ENERGIA ELÉTRICA {MM}/{AAAA} - CELESC", periodo:"anterior", ignorar:false},
+  {keywords:["ADRIANA DE SOUZA"], debito:839, credito:8, hist:"PAGAMENTO REF. SERVIÇO DE LIMPEZA {MM}/{AAAA} - ADRIANA DE SOUZA", periodo:"atual", ignorar:false},
+  {keywords:["PJ CONTA PJ"], debito:384, credito:8, hist:"PAGAMENTO REF. PACOTE DE SERVIÇOS BANCÁRIOS {MM}/{AAAA} - UNICRED", periodo:"atual", ignorar:false},
+  {keywords:["82916818000113"], debito:878, credito:8, hist:"PAGAMENTO REF. IPTU - MUNICIPIO DE CRICIUMA", periodo:null, ignorar:false},
+  {keywords:["82996703000186"], debito:null, credito:null, hist:"", periodo:null, ignorar:true}, // baixa CL136 Unimed — já coberta na aba Baixa de Pagamentos
+  {keywords:["18191228000171"], debito:null, credito:null, hist:"", periodo:null, ignorar:true}, // baixa PJB Cricon — já coberta na aba Baixa de Pagamentos
+  {keywords:["ESTER OLIVIA CERON"], debito:null, credito:null, hist:"", periodo:null, ignorar:true}, // já coberto na aba Baixa de Serviço
+  {keywords:["ARLINDO ROCHA ADVOGADOS"], debito:null, credito:null, hist:"", periodo:null, ignorar:true}, // já coberto na aba Baixa de Serviço
+  {keywords:["RESGATE APLICACAO"], debito:null, credito:null, hist:"", periodo:null, ignorar:true}, // gerado na aba Locativa
+  {keywords:["RECEBIMENTO DE TED","LOCATIVA"], debito:null, credito:null, hist:"", periodo:null, ignorar:true}, // gerado na aba Locativa
+];
+function loadPadroes(){
+  let saved = [];
+  try{ const raw = localStorage.getItem("ig_lanc_padroes"); saved = raw ? JSON.parse(raw) : []; }catch(e){ saved = []; }
+  const savedKey = new Set(saved.map(p=>JSON.stringify(p.keywords)));
+  return saved.concat(PADROES_SEED.filter(p=>!savedKey.has(JSON.stringify(p.keywords))));
+}
+function savePadroes(list){ try{ localStorage.setItem("ig_lanc_padroes", JSON.stringify(list)); }catch(e){} }
+let padroesDB = loadPadroes();
+function renderPadroesTable(){
+  const tbl = document.getElementById("padroesTable");
+  tbl.innerHTML = `<thead><tr><th>Palavras-chave</th><th>Débito</th><th>Crédito</th><th>Histórico</th><th>Período</th><th>Ignorar</th><th></th></tr></thead><tbody>` +
+    padroesDB.map((p,i)=>`<tr>
+      <td class="cell"><input class="cell-input wide" value="${(p.keywords||[]).join(", ")}" onchange="updatePadrao(${i},'keywords',this.value)"></td>
+      <td class="cell"><input class="cell-input" style="width:56px" value="${p.debito??''}" onchange="updatePadrao(${i},'debito',this.value)"></td>
+      <td class="cell"><input class="cell-input" style="width:56px" value="${p.credito??''}" onchange="updatePadrao(${i},'credito',this.value)"></td>
+      <td class="cell"><input class="cell-input wide" value="${p.hist||''}" onchange="updatePadrao(${i},'hist',this.value)"></td>
+      <td class="cell"><select class="cell-input" onchange="updatePadrao(${i},'periodo',this.value)">
+        <option value="" ${!p.periodo?'selected':''}>—</option>
+        <option value="atual" ${p.periodo==='atual'?'selected':''}>Atual</option>
+        <option value="anterior" ${p.periodo==='anterior'?'selected':''}>Anterior</option>
+      </select></td>
+      <td style="text-align:center"><input type="checkbox" ${p.ignorar?'checked':''} onchange="updatePadrao(${i},'ignorar',this.checked)"></td>
+      <td><button class="btn ghost small" onclick="removePadrao(${i})">✕</button></td>
+    </tr>`).join("") + `</tbody>`;
+}
+function updatePadrao(i, field, val){
+  if(field==="keywords"){ padroesDB[i].keywords = val.split(",").map(s=>s.trim()).filter(Boolean); }
+  else if(field==="debito" || field==="credito"){ padroesDB[i][field] = val.trim()===""?null:val.trim(); }
+  else if(field==="ignorar"){ padroesDB[i][field] = val; }
+  else { padroesDB[i][field] = val || null; }
+  savePadroes(padroesDB);
+}
+function addPadraoRow(){ padroesDB.push({keywords:[], debito:null, credito:8, hist:"", periodo:null, ignorar:false}); savePadroes(padroesDB); renderPadroesTable(); }
+function removePadrao(i){ padroesDB.splice(i,1); savePadroes(padroesDB); renderPadroesTable(); }
+
+try{ document.getElementById("codEmp").value = localStorage.getItem("ig_cod_emp") || ""; }catch(e){}
+document.getElementById("codEmp").addEventListener("change", e=>{ try{ localStorage.setItem("ig_cod_emp", e.target.value.trim()); }catch(err){} });
+
+let contasLancState = null, extratoLancState = null, rowsStateLanc = [];
+wireDropzone("contasLancDrop","contasLancFile", async (f,d)=>{
+  const status = document.getElementById("mainStatusLanc");
+  status.classList.remove("hidden","err"); status.textContent = "Lendo Contas a Pagar...";
+  try{
+    const parsed = await parseContasReport(f);
+    if(!parsed.empresaCnpj) throw new Error('Não achei "CNPJ:" no cabeçalho deste relatório — confere se é o PDF certo.');
+    contasLancState = parsed;
+    markDropDone(d, `${parsed.empresaNome} (${parsed.titulos.length} títulos)`);
+    status.classList.add("hidden");
+  }catch(err){
+    status.classList.add("err"); status.textContent = "Erro: " + err.message;
+    contasLancState = null;
+  }
+  checkReadyLanc();
+});
+wireDropzone("extratoLancDrop","extratoLancFile", async (f,d)=>{
+  const status = document.getElementById("mainStatusLanc");
+  status.classList.remove("hidden","err"); status.textContent = "Lendo extrato...";
+  try{
+    const pages = await extractPdfAllLines(f);
+    extratoLancState = parseExtratoUnicred(pages.flat());
+    if(!extratoLancState.length) throw new Error("Não encontrei nenhum lançamento nesse extrato.");
+    markDropDone(d, `${extratoLancState.length} lançamentos`);
+    status.classList.add("hidden");
+  }catch(err){
+    status.classList.add("err"); status.textContent = "Erro: " + err.message;
+    extratoLancState = null;
+  }
+  checkReadyLanc();
+});
+function checkReadyLanc(){ document.getElementById("processBtnLanc").disabled = !(contasLancState && extratoLancState); }
+
+function processarLancamentos(){
+  const bankConta = 8;
+  const abertos = contasLancState ? contasLancState.titulos.filter(t=> t.tipoTitulo==="fornecedor" && normalizeText(t.situacao).startsWith("ABERT")).map(a=>({...a})) : [];
+  const debitLumps = [];
+  extratoLancState.forEach((e, origIdx)=>{ if(e.valor<0) debitLumps.push({...e, valor:Math.abs(e.valor), _origIdx:origIdx}); });
+  const {results: tituloResults} = matchAll(debitLumps, abertos);
+  const cobertoPorTitulo = new Set();
+  Object.keys(tituloResults).forEach(idx=> cobertoPorTitulo.add(debitLumps[Number(idx)]._origIdx));
+
+  const rows = [];
+  let ignoradasTitulo = 0, ignoradasRegra = 0, semCredito = 0;
+  extratoLancState.forEach((e, origIdx)=>{
+    if(cobertoPorTitulo.has(origIdx)){ ignoradasTitulo++; return; }
+    const norm = normalizeText(e.descricao);
+    const padrao = padroesDB.find(p=> (p.keywords||[]).length && p.keywords.every(k=> norm.includes(normalizeText(k))));
+    if(!padrao){
+      rows.push({data:e.data, debito: e.valor<0?null:bankConta, credito: e.valor<0?bankConta:null, valor:Math.abs(e.valor), hist:null, complemento:e.descricao, iniciaLote:1, incluir:true, flag:true, statusText:"Sem padrão cadastrado — complete a conta à mão ou cadastre acima"});
+      return;
+    }
+    if(padrao.ignorar){ ignoradasRegra++; return; }
+    let hist = padrao.hist || "";
+    if(padrao.periodo){
+      const ref = mesAnoRef(e.data, padrao.periodo);
+      const [mm,aaaa] = ref.split("/");
+      hist = hist.replace("{MM}", mm).replace("{AAAA}", aaaa);
+    }
+    rows.push({data:e.data, debito:padrao.debito, credito:padrao.credito||bankConta, valor:Math.abs(e.valor), hist, complemento:null, iniciaLote:1, incluir:true, flag:!padrao.debito, statusText: padrao.debito ? "OK (padrão cadastrado)" : "Padrão sem conta de débito — complete à mão"});
+  });
+
+  rows.sort((a,b)=>partsToDate(a.data)-partsToDate(b.data));
+  rowsStateLanc = rows;
+  renderLancResult(ignoradasTitulo, ignoradasRegra);
+}
+let lancIgnoradasTitulo=0, lancIgnoradasRegra=0, lancTableState = makeTableState();
+function renderLancResult(ignoradasTitulo, ignoradasRegra){
+  lancIgnoradasTitulo = ignoradasTitulo; lancIgnoradasRegra = ignoradasRegra;
+  document.getElementById("resultCardLanc").classList.remove("hidden");
+  lancTableState = makeTableState();
+  renderLancTable();
+}
+function renderLancTable(){
+  const box = document.getElementById("resultCardLanc");
+  const rows = rowsStateLanc;
+  const usaveis = rows.filter(r=>r.incluir!==false);
+  const nFlag = usaveis.filter(r=>r.flag).length;
+  const indexed = filterSortRows(rows, lancTableState, r=>[r.debito,r.credito,r.hist,r.complemento,r.statusText]);
+  let html = `<div class="section-title">Lançamentos gerados</div>
+  <div class="summary-row">
+    <div class="item"><div class="k">Linhas geradas</div><div class="v">${usaveis.length}</div></div>
+    <div class="item"><div class="k">Pra conferir</div><div class="v">${nFlag}</div></div>
+    <div class="item"><div class="k">Ignoradas (título)</div><div class="v">${lancIgnoradasTitulo}</div></div>
+    <div class="item"><div class="k">Ignoradas (regra)</div><div class="v">${lancIgnoradasRegra}</div></div>
+  </div>
+  <div class="help">Linhas em amarelo faltam completar. Ignoradas por regra: já cobertas nas abas Locativa / Baixa de Serviço / Baixa de Pagamentos — não duplicar.</div>
+  <div class="table-toolbar"><input type="search" value="${lancTableState.filter}" placeholder="Filtrar..." oninput="lancTableState.filter=this.value; renderLancTable();"><span class="count">${indexed.length===rows.length?`${rows.length} linha(s)`:`${indexed.length} de ${rows.length}`}</span></div>
+  <div class="table-wrap"><table class="preview"><thead><tr>
+    ${sortTh('lancTableState',lancTableState,'data','Data','renderLancTable')}
+    ${sortTh('lancTableState',lancTableState,'debito','Débito','renderLancTable')}
+    ${sortTh('lancTableState',lancTableState,'credito','Crédito','renderLancTable')}
+    ${sortTh('lancTableState',lancTableState,'valor','Valor','renderLancTable')}
+    <th>Histórico/Complemento</th>
+    ${sortTh('lancTableState',lancTableState,'statusText','Status','renderLancTable')}
+    <th>Incluir</th>
+  </tr></thead><tbody>`;
+  indexed.forEach(({row:r, idx:i})=>{
+    html += `<tr class="${(r.flag?'flag ':'')+(r.incluir===false?'excluded':'')}">
+      <td class="cell"><input class="cell-input" value="${fmtDateBR(r.data)}" onchange="updateLancRow(${i},'data',this.value)"></td>
+      <td class="cell"><input class="cell-input" style="width:56px" value="${r.debito??''}" onchange="updateLancRow(${i},'debito',this.value)"></td>
+      <td class="cell"><input class="cell-input" style="width:56px" value="${r.credito??''}" onchange="updateLancRow(${i},'credito',this.value)"></td>
+      <td class="cell"><input class="cell-input num" value="${fmtBRL(r.valor)}" onchange="updateLancRow(${i},'valor',this.value)"></td>
+      <td class="cell"><input class="cell-input wide" value="${r.hist||r.complemento||''}" onchange="updateLancRow(${i},'complemento',this.value)"></td>
+      <td>${r.statusText||''}</td>
+      <td style="text-align:center"><input type="checkbox" ${r.incluir===false?'':'checked'} onchange="toggleLancRow(${i},this.checked)"></td>
+    </tr>`;
+  });
+  html += `</tbody></table></div>
+  <div class="btn-row">
+    <button class="btn" onclick="downloadLancXlsx()">Baixar lancamentos_ig.xlsx</button>
+    <button class="btn ghost" onclick="downloadLancTxt()">Baixar lanctos.txt</button>
+  </div>`;
+  box.innerHTML = html;
+}
+function updateLancRow(i, field, val){
+  const r = rowsStateLanc[i];
+  if(field==="data"){ const dt=brDateToParts(val); if(dt) r.data=dt; }
+  else if(field==="valor"){ const n=parseBRL(val); if(n!=null) r.valor=n; }
+  else if(field==="debito" || field==="credito"){ r[field] = String(val).trim()===""?null:val.trim(); }
+  else if(field==="complemento"){ r.complemento = val; r.hist = null; }
+  if(r.debito!=null && r.credito!=null && r.data && (r.hist || r.complemento)) r.flag = false;
+}
+function toggleLancRow(i, checked){ rowsStateLanc[i].incluir = checked; }
+function downloadLancXlsx(){
+  const codEmp = document.getElementById("codEmp").value.trim();
+  const usaveis = rowsStateLanc.filter(r=>r.incluir!==false);
+  downloadLancamentosXlsx("lancamentos_ig.xlsx", usaveis, codEmp);
+}
+function downloadLancTxt(){
+  const codEmp = document.getElementById("codEmp").value.trim();
+  const usaveis = rowsStateLanc.filter(r=>r.incluir!==false);
+  downloadLancamentosTxt("lanctos.txt", usaveis, codEmp);
+}
+
+/* =========================================================================
+   IMPORTAÇÃO DE CADASTRO DE CLIENTES/FORNECEDORES (fallback CNPJ)
+   ========================================================================= */
+const NOME_MUNI_RE = /^([A-ZÀ-Ú0-9º.\-\/ ]+?)\s{2,}(\d{2})\s+([\d.\/-]{11,18})\s+(.+)$/;
+async function parseCadastroClientesFornecedores(file, tipo, empresaCnpjForcado){
+  const pages = await extractPdfAllLines(file);
+  const allLines = pages.flat();
+  const fullText = allLines.join("\n");
+  let empresaCnpj = empresaCnpjForcado || null;
+  if(!empresaCnpj){ const cm = fullText.match(CNPJ_HEADER_RE); if(cm) empresaCnpj = onlyDigits(cm[1]); }
+  const out = [];
+  allLines.forEach(line=>{
+    const m = line.match(/^(\d+)\s+(.+?)\s+([\d.\/-]{11,18})\s*$/);
+    if(!m) return;
+    const codigo = m[1], nome = m[2].trim(), doc = onlyDigits(m[3]);
+    const cls = classifyDocumento(doc);
+    if(!cls.valido) return;
+    out.push({codigo, nome, documento:doc});
+  });
+  return {empresaCnpj, tipo, registros: out};
+}
+wireDropzone("cadPdfDrop","cadPdfFile", async (f,d)=>{
+  const status = document.getElementById("cadPdfStatus");
+  status.classList.remove("hidden","err");
+  status.textContent = "Lendo cadastro...";
+  try{
+    const empresaCnpjAtiva = (contasState && contasState.empresaCnpj) || (contasPagarState && contasPagarState.empresaCnpj) || IG_CNPJ;
+    const fullText = (await extractPdfAllLines(f)).flat().join("\n");
+    const tipoTitulo = /Fornecedores/i.test(fullText) ? "fornecedor" : "cliente";
+    const parsed = await parseCadastroClientesFornecedores(f, tipoTitulo, empresaCnpjAtiva);
+    if(!parsed.registros.length) throw new Error("Não consegui ler nenhum registro válido nesse PDF.");
+    const dirty = {};
+    parsed.registros.forEach(p=>{
+      if(!clientesDB[p.documento]) clientesDB[p.documento] = {documento:p.documento, tipo:parsed.tipo, razao_social:p.nome, codigos:{}, fonte:"importado-pdf-ig"};
+      if(!clientesDB[p.documento].codigos) clientesDB[p.documento].codigos = {};
+      const chave = `${empresaCnpjAtiva}_${tipoTitulo}`;
+      if(clientesDB[p.documento].codigos[chave] !== p.codigo){ clientesDB[p.documento].codigos[chave] = p.codigo; }
+      dirty[p.documento] = clientesDB[p.documento];
+    });
+    saveClientes(clientesDB);
+    rebuildCodigoIndex();
+    if(window.igCloud) window.igCloud.pushManyClientes(dirty);
+    markDropDone(d, `${parsed.registros.length} registros importados`);
+    status.classList.add("hidden");
+    if(rowsState.length) renderResultTable();
+    if(rowsStatePagar.length) renderResultPagarTable();
+  }catch(err){
+    status.classList.add("err"); status.textContent = "Erro: " + err.message;
+  }
+});
+
+/* =========================================================================
+   ARMAZENAMENTO — mesmo cadastro compartilhado (Firestore "clientes") que as
+   demais ferramentas do escritório (Baixas-Parcelas, Conversões Cibele,
+   Baixa-Servico-Equilibrio...)
+   ========================================================================= */
+function loadClientes(){ try{ const raw = localStorage.getItem("cibele_clientes_fornecedores"); return raw ? JSON.parse(raw) : {}; }catch(e){ return {}; } }
+function saveClientes(db){ try{ localStorage.setItem("cibele_clientes_fornecedores", JSON.stringify(db)); }catch(e){} }
+let clientesDB = loadClientes();
+rebuildCodigoIndex();
+</script>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+import { getFirestore, collection, doc, setDoc, onSnapshot, writeBatch } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCBIQkYYNt3K4gZ0OGqoqsU8Jnrsgxif5k",
+  authDomain: "conversoes-cibele.firebaseapp.com",
+  projectId: "conversoes-cibele",
+  storageBucket: "conversoes-cibele.firebasestorage.app",
+  messagingSenderId: "401784315449",
+  appId: "1:401784315449:web:5d459a524059c0978bb7e8"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
+let ready = false;
+let firstClientesSnap = true;
+
+function setCloudBadge(text, cls){
+  const el = document.getElementById("cloudStatus");
+  if(!el) return;
+  el.textContent = text; el.className = "badge " + (cls||"info");
+}
+setCloudBadge("Conectando à nuvem…", "warn");
+signInAnonymously(auth).catch(err=>{
+  console.error("Firebase auth error", err);
+  setCloudBadge("Nuvem indisponível — usando só este navegador", "err");
+});
+
+onAuthStateChanged(auth, (user)=>{
+  if(!user) return;
+  ready = true;
+  onSnapshot(collection(db, "clientes"), (snap)=>{
+    const cloudData = {};
+    snap.forEach(d=> cloudData[d.id] = d.data());
+    if(firstClientesSnap){
+      firstClientesSnap = false;
+      const localOnly = {};
+      Object.keys(window.clientesDB||{}).forEach(k=>{ if(!cloudData[k]) localOnly[k]=window.clientesDB[k]; });
+      window.clientesDB = {...cloudData, ...localOnly};
+      saveClientes(window.clientesDB);
+      if(Object.keys(localOnly).length) window.igCloud.pushManyClientes(localOnly);
+    } else {
+      window.clientesDB = cloudData;
+      saveClientes(window.clientesDB);
+    }
+    if(window.rebuildCodigoIndex) window.rebuildCodigoIndex();
+    setCloudBadge("Sincronizado com a nuvem", "ok");
+  }, err=>{ console.error("clientes onSnapshot", err); setCloudBadge("Erro de sincronização", "err"); });
+});
+
+window.igCloud = {
+  pushManyClientes(obj){
+    if(!ready) return;
+    const keys = Object.keys(obj||{}); if(!keys.length) return;
+    const batch = writeBatch(db);
+    keys.forEach(k=> batch.set(doc(db,"clientes",k), obj[k]));
+    batch.commit().catch(e=>console.error("pushManyClientes",e));
+  }
+};
+</script>
+</body>
+</html>
