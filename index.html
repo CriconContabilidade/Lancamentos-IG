@@ -153,6 +153,10 @@ code{background:var(--paper);padding:1px 5px;border-radius:3px;font-family:'IBM 
         <label>Demonstrativo de Aplicação (Unicred, PDF)</label>
         <div class="dropzone optional" id="aplicacaoDrop"><div class="big">Opcional</div><div class="small">Gera o lançamento de rendimento e a NFS de resgate</div><input type="file" id="aplicacaoFile" accept="application/pdf"></div>
       </div>
+      <div class="field">
+        <label>Contas a Receber por Cliente (PDF)</label>
+        <div class="dropzone optional" id="contasReceberLocDrop"><div class="big">Opcional</div><div class="small">Dá baixa nos títulos dos 6 contratos de aluguel pagos junto no TED único da Locativa</div><input type="file" id="contasReceberLocFile" accept="application/pdf"></div>
+      </div>
     </div>
     <div class="btn-row"><button class="btn" id="processBtnLoc" disabled onclick="processarLocativa()">Processar</button></div>
     <div id="mainStatusLoc" class="status-line hidden"></div>
@@ -937,13 +941,14 @@ function downloadLancamentosTxt(filename, rows, codEmp){
 /* =========================================================================
    TAB LOCATIVA — pipeline principal
    ========================================================================= */
-let locativaFileState = null, extratoLocState = null, aplicacaoFileState = null;
+let locativaFileState = null, extratoLocState = null, aplicacaoFileState = null, contasReceberLocFileState = null;
 wireDropzone("locativaDrop","locativaFile", (f,d)=>{ locativaFileState = f; markDropDone(d, f.name); checkReadyLoc(); });
 wireDropzone("extratoLocDrop","extratoLocFile", (f,d)=>{ extratoLocState = f; markDropDone(d, f.name); checkReadyLoc(); });
 wireDropzone("aplicacaoDrop","aplicacaoFile", (f,d)=>{ aplicacaoFileState = f; markDropDone(d, f.name); checkReadyLoc(); });
+wireDropzone("contasReceberLocDrop","contasReceberLocFile", (f,d)=>{ contasReceberLocFileState = f; markDropDone(d, f.name); checkReadyLoc(); });
 function checkReadyLoc(){ document.getElementById("processBtnLoc").disabled = !(locativaFileState && extratoLocState); }
 
-let locRepasseState = null, locLancamentoRows = [], locRevenueRows = [], locRendimentoRows = [], locResgateRows = [];
+let locRepasseState = null, locLancamentoRows = [], locRevenueRows = [], locRendimentoRows = [], locResgateRows = [], locBaixaRows = [];
 async function processarLocativa(){
   const status = document.getElementById("mainStatusLoc");
   status.classList.remove("hidden","err"); status.textContent = "Processando...";
@@ -999,6 +1004,37 @@ async function processarLocativa(){
     locLancamentoRows.push({chave:"impostosAdiantados", conta:getContaFixa("impostosAdiantados"), lado:"C", valor:impostos, hist:`RECEBIMENTO REF. IMPOSTOS ADIANTADOS ${mesAnterior} - LOCATIVA`, editavel:true});
 
     locRevenueRows = revenue;
+
+    // ---- baixa dos títulos de aluguel (Contas a Receber, opcional) ----
+    // Os 6 contratos são pagos juntos num único TED da Locativa — não tem como casar
+    // por valor/nome linha a linha no extrato (é uma soma), então casa por código do
+    // cliente no Domínio + vencimento mais próximo do mês seguinte à competência.
+    locBaixaRows = [];
+    if(contasReceberLocFileState){
+      const crParsed = await parseContasReport(contasReceberLocFileState);
+      const abertos = crParsed.titulos.filter(t=> t.tipoTitulo==="cliente" && /^(ABERT|PARCIAL)/.test(normalizeText(t.situacao)));
+      let vy=null, vm=null;
+      if(repasse.anoMes){ vy=repasse.anoMes.y; vm=repasse.anoMes.m+1; if(vm>12){vm=1;vy++;} }
+      revenue.forEach(r=>{
+        const cad = getContrato(r.contrato);
+        if(!cad || cad.codigoDominio==null){
+          locBaixaRows.push({numero:"", cnpj:"", nome:r.cliente, vencimento:null, databaixa:dataRecebimento, valor:r.valor, juros:0,multa:0,desconto:0,pis:0,cofins:0,csll:0,irrf:0, flag:true, statusText:"Contrato sem código de cliente Domínio cadastrado — preencha na aba Cadastros"});
+          return;
+        }
+        const candidatos = abertos.filter(t=> !t._used && String(t.codigo)===String(cad.codigoDominio));
+        if(vy!=null) candidatos.sort((a,b)=> Math.abs((a.vencimento.y*12+a.vencimento.m)-(vy*12+vm)) - Math.abs((b.vencimento.y*12+b.vencimento.m)-(vy*12+vm)));
+        const alvo = candidatos[0];
+        if(alvo){
+          alvo._used = true;
+          const cnpjInfo = resolverCnpj(crParsed.empresaCnpj, "cliente", alvo.codigo, alvo.nome);
+          r.cnpjResolvido = cnpjInfo ? cnpjInfo.documento : "";
+          r.numeroDocumento = r.numeroDocumento || alvo.documento;
+          locBaixaRows.push({numero:alvo.documento, cnpj:cnpjInfo?cnpjInfo.documento:"", nome:cnpjInfo?cnpjInfo.nome:alvo.nome, vencimento:alvo.vencimento, databaixa:dataRecebimento, valor:alvo.valorParcela, juros:0,multa:0,desconto:0,pis:0,cofins:0,csll:0,irrf:0, flag: !cnpjInfo || !dataRecebimento, statusText: !dataRecebimento ? "Data do TED não encontrada — preencha manualmente" : (!cnpjInfo ? "CPF/CNPJ não encontrado no cadastro" : "OK")});
+        } else {
+          locBaixaRows.push({numero:"", cnpj:"", nome:r.cliente, vencimento:null, databaixa:dataRecebimento, valor:r.valor, juros:0,multa:0,desconto:0,pis:0,cofins:0,csll:0,irrf:0, flag:true, statusText:"Não achei título em aberto desse cliente no Contas a Receber — confira/preencha manualmente"});
+        }
+      });
+    }
 
     // ---- aplicação financeira (opcional) ----
     locRendimentoRows = []; locResgateRows = [];
@@ -1087,6 +1123,23 @@ function renderLocativaResult(dataRecebimento, semClassificar){
     </div>`;
   }
 
+  if(locBaixaRows.length){
+    html += `<div class="card"><div class="section-title">Baixa dos títulos de aluguel (Contas a Receber)</div>
+    <div class="help">Os 6 contratos são pagos juntos no TED único da Locativa — a data da baixa é a data desse TED. Revise antes de baixar.</div>
+    <div class="table-wrap"><table class="preview"><thead><tr><th>Nº Nota</th><th>CPF/CNPJ</th><th>Nome</th><th>Vencimento</th><th>Data Baixa</th><th>Valor</th><th>Status</th></tr></thead><tbody>` +
+      locBaixaRows.map((r,i)=>`<tr class="${r.flag?'flag':''}">
+        <td class="cell"><input class="cell-input" value="${r.numero}" onchange="updateBaixaLocRow(${i},'numero',this.value)"></td>
+        <td class="cell"><input class="cell-input wide" value="${r.cnpj}" onchange="updateBaixaLocRow(${i},'cnpj',this.value)"></td>
+        <td>${r.nome||''}</td>
+        <td class="cell"><input class="cell-input" value="${fmtDateBR(r.vencimento)}" onchange="updateBaixaLocRow(${i},'vencimento',this.value)"></td>
+        <td class="cell"><input class="cell-input" value="${fmtDateBR(r.databaixa)}" onchange="updateBaixaLocRow(${i},'databaixa',this.value)"></td>
+        <td class="cell"><input class="cell-input num" value="${fmtBRL(r.valor)}" onchange="updateBaixaLocRow(${i},'valor',this.value)"></td>
+        <td>${r.statusText||''}</td>
+      </tr>`).join("") + `</tbody></table></div>
+    <div class="btn-row"><button class="btn" onclick="downloadBaixaLocXlsx()">Baixar baixa_servicos.xlsx</button><button class="btn ghost" onclick="downloadBaixaLocTxt()">Baixar baixa_ser.txt</button></div>
+    </div>`;
+  }
+
   if(locResgateRows.length){
     html += `<div class="card"><div class="section-title">Resgate no mês — NFS (rendimento pago = valor da NF, IRRF = 15%)</div>
     <div class="table-wrap"><table class="preview"><thead><tr><th>Título</th><th>Rendimento Pago (Valor NF)</th><th>IRRF (15%)</th><th>Data Resgate</th><th>Nº Doc. NFS</th></tr></thead><tbody>` +
@@ -1141,9 +1194,9 @@ function downloadLocLancamentosTxt(){
   downloadLancamentosTxt("lancamentos_locativa.txt", rows, codEmp);
 }
 function nfsInfoParaContrato(r){
-  const info = resolverCnpjPorNome(r.cliente);
+  const info = r.cnpjResolvido ? {documento:r.cnpjResolvido} : resolverCnpjPorNome(r.cliente);
   return {
-    cnpj: info?info.documento:"", razaoSocial: info?info.nome:r.cliente,
+    cnpj: info?info.documento:"", razaoSocial: r.cliente,
     endereco: r.imovel||"", numeroDocumento: r.numeroDocumento||"", data: null, valor: r.valor, irrf:0,
   };
 }
@@ -1162,6 +1215,22 @@ function nfsInfoParaResgate(r){
 }
 function downloadNfsResgateXlsx(){ downloadNfsXlsx("nfs_resgate_ig.xlsx", locResgateRows.map(nfsInfoParaResgate)); }
 function downloadNfsResgateTxt(){ downloadNfsTxt("nfs_resgate_ig.txt", locResgateRows.map(nfsInfoParaResgate)); }
+
+function updateBaixaLocRow(i, field, val){
+  const r = locBaixaRows[i];
+  if(field==="vencimento" || field==="databaixa"){ r[field] = brDateToParts(val) || null; }
+  else if(field==="valor"){ const n=parseBRL(val); if(n!=null) r.valor=n; }
+  else { r[field] = val; }
+}
+function rowArrayBaixaLoc(r){ return [r.numero, "U", onlyDigits(r.cnpj), fmtDateBR(r.vencimento), fmtDateBR(r.databaixa), r.valor, r.juros, r.multa, r.desconto, r.pis, r.cofins, r.csll, r.irrf]; }
+function downloadBaixaLocXlsx(){
+  const header = ["Número da Nota","Série do Documento","CPF/CNPJ do Cliente","Data de Vencimento da Parcela","Data da Baixa da Parcela","Valor Recebido","Valor Juros","Valor Multa","Valor Desconto","Valor PIS","Valor COFINS","Valor CSLL","Valor IRRF"];
+  downloadXlsx("baixa_aluguel_locativa.xlsx", [header, ...locBaixaRows.map(rowArrayBaixaLoc)], "Baixa");
+}
+function downloadBaixaLocTxt(){
+  const lines = locBaixaRows.map(r=> rowArrayBaixaLoc(r).map((v,i)=> i>=5 ? fmtValorTxt(v) : v).join(";"));
+  downloadText("baixa_ser_aluguel_locativa.txt", lines.join("\r\n") + "\r\n");
+}
 
 /* =========================================================================
    TAB BAIXA DE SERVIÇO — casa recebimentos do extrato (PIX/TED de clientes
