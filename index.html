@@ -1441,8 +1441,14 @@ wireDropzone("extratoPagarDrop","extratoPagarFile", async (f,d)=>{
 });
 function checkReadyPagar(){ document.getElementById("processBtnPagar").disabled = !(contasPagarState && extratoPagarState); }
 
+// Fornecedores cujo título é sempre baixado na própria data de emissão (não aparece
+// como linha própria no extrato — ex. a taxa de administração da própria Locativa,
+// que já sai descontada/acertada por fora, não em débito automático avulso).
+const FORNECEDORES_BAIXA_EMISSAO = ["LOCATIVA"];
 function processarBaixaPagar(){
-  const abertos = contasPagarState.titulos.filter(t=> normalizeText(t.situacao).startsWith("ABERT")).map(a=>({...a}));
+  const todosAbertos = contasPagarState.titulos.filter(t=> normalizeText(t.situacao).startsWith("ABERT")).map(a=>({...a}));
+  const baixaEmissao = todosAbertos.filter(a=> FORNECEDORES_BAIXA_EMISSAO.some(k=> normalizeText(a.nome).includes(normalizeText(k))));
+  const abertos = todosAbertos.filter(a=> !baixaEmissao.includes(a));
   const lumps = extratoPagarState.filter(e=> e.valor<0).map(e=>({data:e.data, valor:Math.abs(e.valor), descricao:e.descricao}));
   const {results, wideResolved, unmatchedAbertos} = matchAll(lumps, abertos);
   const rows = [];
@@ -1451,6 +1457,7 @@ function processarBaixaPagar(){
     const isWide = wideResolved.has(idx);
     results[idx].forEach(a=> rows.push(buildRowPagar(a, lumps[idx].data, isWide?"warn":null, isWide?"Conciliado (janela larga, conferir)":"OK")));
   });
+  baixaEmissao.forEach(a=> rows.push(buildRowPagar(a, a.emissao, "warn", "Baixado na data de emissão (regra automática, não passa pelo extrato) — confira")));
   unmatchedAbertos.sort((a,b)=> partsToDate(a.vencimento)-partsToDate(b.vencimento)).forEach(a=>{
     rows.push(buildRowPagar(a, null, "err", "Sem correspondência no extrato"));
   });
