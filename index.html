@@ -896,28 +896,39 @@ function resolverDataResgate(txns){
    de aluguel do escritório (Aluguéis Mantovani)
    ========================================================================= */
 const NFS_HEADER = ["CPF/CNPJ","Razão Social","UF","Município","Endereço","Número Documento","Série","Data","Situação","Acumulador","CFPS","Valor Serviços","Valor Descontos","Valor Dedução","Valor Contábil","Base de Calculo","Alíquota ISS","Valor ISS Normal","Valor ISS Retido","Valor IRRF","Valor PIS","Valor COFINS","Valor CSLL","Valo CRF","Valor INSS","Código do Item","Quantidade","Valor Unitário"];
+// CPF/CNPJ formatado com pontuação — confirmado com um ServicoPrest.txt real que
+// importou certo (ex. "485.005.939-20", não "48500593920"). Razão Social/UF/
+// Município/Endereço ficam em branco nesse mesmo arquivo real (o Domínio resolve
+// pelo CPF/CNPJ do próprio cadastro) — replicado aqui em vez de preencher.
+function formatCpfCnpj(digits){
+  const d = onlyDigits(digits);
+  if(d.length===11) return d.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
+  if(d.length===14) return d.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, "$1.$2.$3/$4-$5");
+  return digits||"";
+}
 function nfsRowArray(r){
   const row = new Array(NFS_HEADER.length).fill("");
-  row[0] = onlyDigits(r.cnpj);
-  row[1] = stripAccents(r.razaoSocial||"");
-  row[2] = "SC";
-  row[3] = "CRICIUMA";
-  row[4] = stripAccents(r.endereco||"");
+  row[0] = formatCpfCnpj(r.cnpj);
   row[5] = r.numeroDocumento||"";
   row[6] = "U";
   row[7] = fmtDateBR(r.data);
-  row[8] = "N";
+  row[8] = "0";      // Situação
+  row[9] = "2";      // Acumulador
+  row[10] = "9101";  // CFPS
   row[11] = r.valor; // Valor Serviços
   row[14] = r.valor; // Valor Contábil
-  row[19] = r.irrf||0; // Valor IRRF
+  row[19] = r.irrf ? r.irrf : ""; // Valor IRRF (só preenche quando tem retenção de fato)
   return row;
 }
 function downloadNfsXlsx(filename, rows){
   downloadXlsx(filename, [NFS_HEADER, ...rows.map(nfsRowArray)], "NFS");
 }
 function downloadNfsTxt(filename, rows){
+  // Só formata como valor monetário os campos que a linha realmente preencheu — os
+  // demais (Valor Descontos, Base de Cálculo etc., que não usamos) ficam em branco,
+  // igual num ServicoPrest.txt real que já importou certo (não "0").
   const moneyIdx = [11,12,13,14,15,17,18,19,20,21,22,23,24,26,27];
-  const lines = rows.map(r=> nfsRowArray(r).map((v,i)=> moneyIdx.includes(i) ? fmtValorTxt(v) : v).join(";"));
+  const lines = rows.map(r=> nfsRowArray(r).map((v,i)=> (moneyIdx.includes(i) && v!=="") ? fmtValorTxt(v) : v).join(";"));
   downloadText(filename, lines.join("\r\n") + "\r\n");
 }
 
@@ -1033,7 +1044,14 @@ function downloadBaixaSerUnificadoTxt(){
 /* =========================================================================
    TAB LOCATIVA — pipeline principal
    ========================================================================= */
-let locRepasseState = null, locLancamentoRows = [], locRevenueRows = [], locRendimentoRows = [], locResgateRows = [], locBaixaRows = [], locDataRecebimento = null;
+let locRepasseState = null, locLancamentoRows = [], locRevenueRows = [], locRendimentoRows = [], locResgateRows = [], locBaixaRows = [], locDataRecebimento = null, locCompetenciaFim = null;
+// Último dia do mês de competência — confirmado com um ServicoPrest.txt real que
+// importou certo: a Data da NF de aluguel é sempre o último dia do mês de
+// competência (ex. 31/07/2026), não a data em que o TED da Locativa caiu no banco.
+function lastDayOfMonth(y, m){
+  const d = new Date(Date.UTC(y, m, 0));
+  return {y: d.getUTCFullYear(), m: d.getUTCMonth()+1, d: d.getUTCDate()};
+}
 async function processarLocativa(){
   {
     const locLines = (await extractPdfAllLines(fLocativa)).flat();
@@ -1046,6 +1064,7 @@ async function processarLocativa(){
     const tedTxn = txns.find(t=> Math.round(Math.abs(t.valor)*100)===Math.round(repasse.tituloValor*100) && /LOCATIVA/i.test(t.descricao));
     const dataRecebimento = tedTxn ? tedTxn.data : null;
     locDataRecebimento = dataRecebimento;
+    locCompetenciaFim = repasse.anoMes ? lastDayOfMonth(repasse.anoMes.y, repasse.anoMes.m) : null;
 
     // O "Ano/Mês" do recibo já É a competência do aluguel (mês anterior ao repasse,
     // que sempre cai no mês seguinte) — não subtrai mais um mês aqui.
@@ -1279,7 +1298,7 @@ function nfsInfoParaContrato(r){
   const info = r.cnpjResolvido ? {documento:r.cnpjResolvido} : resolverCnpjPorNome(r.cliente);
   return {
     cnpj: info?info.documento:"", razaoSocial: r.cliente,
-    endereco: r.imovel||"", numeroDocumento: r.numeroDocumento||"", data: locDataRecebimento, valor: r.valor, irrf:0,
+    endereco: r.imovel||"", numeroDocumento: r.numeroDocumento||"", data: locCompetenciaFim, valor: r.valor, irrf:0,
   };
 }
 function downloadNfsAluguelXlsx(){ downloadNfsXlsx("nfs_aluguel_ig.xlsx", locRevenueRows.map(nfsInfoParaContrato)); }
