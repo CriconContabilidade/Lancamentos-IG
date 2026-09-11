@@ -1029,7 +1029,7 @@ async function processarLocativa(){
           locRendimentoRows.push({titulo:l.titulo, conta:apl?apl.conta:null, creditoReceita:getContaFixa("rendimentoAplicacao"), valor:l.rendimentoPeriodo, data:dataReferencia});
         }
         if(Math.abs(l.rendimentoPago)>0.004){
-          locResgateRows.push({titulo:l.titulo, conta:apl?apl.conta:null, rendimentoPago:l.rendimentoPago, irRetido:l.irRetido, dataResgate: resolverDataResgate(txns) || dataReferencia, numeroDocumento:""});
+          locResgateRows.push({titulo:l.titulo, conta:apl?apl.conta:null, rendimentoPago:l.rendimentoPago, irRetido:l.irRetido, resgateValor:l.resgate||0, dataResgate: resolverDataResgate(txns) || dataReferencia, numeroDocumento:""});
         }
       });
     }
@@ -1118,16 +1118,21 @@ function renderLocativaResult(dataRecebimento, semClassificar){
   }
 
   if(locResgateRows.length){
-    html += `<div class="card"><div class="section-title">Resgate no mês — NFS (rendimento pago = valor da NF, IRRF = 15%)</div>
-    <div class="table-wrap"><table class="preview"><thead><tr><th>Título</th><th>Rendimento Pago (Valor NF)</th><th>IRRF (15%)</th><th>Data Resgate</th><th>Nº Doc. NFS</th></tr></thead><tbody>` +
+    html += `<div class="card"><div class="section-title">Resgate no mês — NFS + baixa (mesma NF, importa e já dá baixa em seguida)</div>
+    <div class="help">Rendimento pago = valor da NF (o que é tributado), IRRF = 15%. Na baixa, o <b>valor recebido é o total resgatado conforme o banco</b> (resgate + rendimento) — a diferença entre o total e o valor da NF entra como <b>Juros</b>, exatamente como pedido.</div>
+    <div class="table-wrap"><table class="preview"><thead><tr><th>Título</th><th>Rendimento Pago (Valor NF)</th><th>IRRF (15%)</th><th>Resgate (principal)</th><th>Data Resgate</th><th>Nº Doc. NFS</th></tr></thead><tbody>` +
       locResgateRows.map((r,i)=>`<tr class="${r.dataResgate?'':'flag'}">
         <td>${r.titulo}</td>
         <td class="cell"><input class="cell-input num" value="${fmtBRL(r.rendimentoPago)}" onchange="updateResgateRow(${i},'rendimentoPago',this.value)"></td>
         <td class="cell"><input class="cell-input num" value="${fmtBRL(r.irRetido)}" onchange="updateResgateRow(${i},'irRetido',this.value)"></td>
+        <td class="cell"><input class="cell-input num" value="${fmtBRL(r.resgateValor)}" onchange="updateResgateRow(${i},'resgateValor',this.value)"></td>
         <td class="cell"><input class="cell-input" style="width:80px" value="${r.dataResgate?fmtDateBR(r.dataResgate):''}" onchange="updateResgateRow(${i},'dataResgate',this.value)"></td>
         <td class="cell"><input class="cell-input" style="width:70px" value="${r.numeroDocumento||''}" onchange="updateResgateRow(${i},'numeroDocumento',this.value)"></td>
       </tr>`).join("") + `</tbody></table></div>
-    <div class="btn-row"><button class="btn" onclick="downloadNfsResgateXlsx()">NFS Resgate — .xlsx</button><button class="btn ghost" onclick="downloadNfsResgateTxt()">NFS Resgate — .txt</button></div>
+    <div class="btn-row">
+      <button class="btn" onclick="downloadNfsResgateXlsx()">NFS Resgate — .xlsx</button><button class="btn ghost" onclick="downloadNfsResgateTxt()">NFS Resgate — .txt</button>
+      <button class="btn" onclick="downloadBaixaResgateXlsx()">Baixa NF Resgate — .xlsx</button><button class="btn ghost" onclick="downloadBaixaResgateTxt()">Baixa NF Resgate — .txt</button>
+    </div>
     </div>`;
   }
 
@@ -1155,7 +1160,7 @@ function updateRendimentoRow(i, field, val){
 function updateResgateRow(i, field, val){
   const r = locResgateRows[i];
   if(field==="dataResgate"){ r.dataResgate = brDateToParts(val); }
-  else if(field==="rendimentoPago" || field==="irRetido"){ const n=parseBRL(val); if(n!=null) r[field]=n; }
+  else if(field==="rendimentoPago" || field==="irRetido" || field==="resgateValor"){ const n=parseBRL(val); if(n!=null) r[field]=n; }
   else { r[field] = val; }
 }
 function downloadLocLancamentosXlsx(){
@@ -1193,6 +1198,21 @@ function nfsInfoParaResgate(r){
 }
 function downloadNfsResgateXlsx(){ downloadNfsXlsx("nfs_resgate_ig.xlsx", locResgateRows.map(nfsInfoParaResgate)); }
 function downloadNfsResgateTxt(){ downloadNfsTxt("ServicoPrest.txt", locResgateRows.map(nfsInfoParaResgate)); }
+
+// Baixa da própria NF de resgate: o valor recebido é o total resgatado conforme o
+// banco (resgate/principal + rendimento pago) — a diferença pro valor da NF (só o
+// rendimento) entra como Juros, conforme pedido.
+function rowArrayBaixaResgate(r){
+  return [r.numeroDocumento||"", "U", onlyDigits(UNICRED_CNPJ), fmtDateBR(r.dataResgate), fmtDateBR(r.dataResgate), r.rendimentoPago, r.resgateValor||0, 0, 0, 0, 0, 0, r.irRetido];
+}
+function downloadBaixaResgateXlsx(){
+  const header = ["Número da Nota","Série do Documento","CPF/CNPJ do Cliente","Data de Vencimento da Parcela","Data da Baixa da Parcela","Valor Recebido","Valor Juros","Valor Multa","Valor Desconto","Valor PIS","Valor COFINS","Valor CSLL","Valor IRRF"];
+  downloadXlsx("baixa_resgate_ig.xlsx", [header, ...locResgateRows.map(rowArrayBaixaResgate)], "Baixa");
+}
+function downloadBaixaResgateTxt(){
+  const lines = locResgateRows.map(r=> rowArrayBaixaResgate(r).map((v,i)=> i>=5 ? fmtValorTxt(v) : v).join(";"));
+  downloadText("baixa_ser.txt", lines.join("\r\n") + "\r\n");
+}
 
 function updateBaixaLocRow(i, field, val){
   const r = locBaixaRows[i];
