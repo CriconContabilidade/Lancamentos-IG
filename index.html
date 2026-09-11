@@ -127,6 +127,39 @@ code{background:var(--paper);padding:1px 5px;border-radius:3px;font-family:'IBM 
     </div>
   </div>
 
+  <div class="card">
+    <div class="section-title">Documentos do mês</div>
+    <div class="help">Anexe aqui os PDFs do mês — são usados nas 4 abas abaixo (Locativa, Baixa de Serviço, Baixa de Pagamentos e Lançamentos), sem precisar repetir o mesmo arquivo. Contas a Receber/Pagar são opcionais, mas cada um só alimenta as abas que precisam dele.</div>
+    <div class="field-row">
+      <div class="field">
+        <label>Recibo de Repasse (Locativa, PDF) *</label>
+        <div class="dropzone" id="locativaDrop"><div class="big">Arraste o PDF aqui</div><div class="small">Recibo de Pagamento de Proprietário</div><input type="file" id="locativaFile" accept="application/pdf"></div>
+      </div>
+      <div class="field">
+        <label>Extrato Unicred (PDF) *</label>
+        <div class="dropzone" id="extratoDrop"><div class="big">Arraste o PDF aqui</div><div class="small">Usado em todas as abas</div><input type="file" id="extratoFile" accept="application/pdf"></div>
+      </div>
+      <div class="field">
+        <label>Demonstrativo de Aplicação (Unicred, PDF)</label>
+        <div class="dropzone optional" id="aplicacaoDrop"><div class="big">Opcional</div><div class="small">Gera o lançamento de rendimento e a NFS de resgate</div><input type="file" id="aplicacaoFile" accept="application/pdf"></div>
+      </div>
+      <div class="field">
+        <label>Contas a Receber por Cliente (PDF)</label>
+        <div class="dropzone optional" id="contasReceberDrop"><div class="big">Opcional</div><div class="small">Baixa dos 6 títulos de aluguel (Locativa) + Baixa de Serviço (Arlindo/Ester)</div><input type="file" id="contasReceberFile" accept="application/pdf"></div>
+      </div>
+      <div class="field">
+        <label>Contas a Pagar por Fornecedor (PDF)</label>
+        <div class="dropzone optional" id="contasPagarDrop"><div class="big">Opcional</div><div class="small">Baixa de Pagamentos + evita duplicar título na aba Lançamentos</div><input type="file" id="contasPagarFile" accept="application/pdf"></div>
+      </div>
+      <div class="field">
+        <label>Código Emp. (Domínio)</label>
+        <input type="text" id="codEmp" placeholder="código da IG no Domínio">
+      </div>
+    </div>
+    <div class="btn-row"><button class="btn" id="processBtnAll" disabled onclick="processarTudo()">Processar Tudo</button></div>
+    <div id="mainStatusAll" class="status-line hidden"></div>
+  </div>
+
   <div class="tabbar" id="tabbar">
     <div class="tabbtn active" data-tab="locativa" onclick="selectTab('locativa')">Locativa (mês)</div>
     <div class="tabbtn" data-tab="servico" onclick="selectTab('servico')">Baixa de Serviço</div>
@@ -137,100 +170,24 @@ code{background:var(--paper);padding:1px 5px;border-radius:3px;font-family:'IBM 
 
   <!-- ===================== TAB: LOCATIVA ===================== -->
   <div id="tabLocativa">
-  <div class="card">
-    <div class="section-title">1. Documentos do mês</div>
-    <div class="help">O recibo da Locativa traz a competência do mês <b>anterior</b> (paga no mês atual). Anexe também o extrato do Unicred (pra achar a data do TED e do resgate) e, se tiver, o Demonstrativo de Rentabilidade da Unicred (aplicação financeira) — gera sozinho o lançamento do rendimento do período e a NFS de resgate, quando houver.</div>
-    <div class="field-row">
-      <div class="field">
-        <label>Recibo de Repasse (Locativa, PDF) *</label>
-        <div class="dropzone" id="locativaDrop"><div class="big">Arraste o PDF aqui</div><div class="small">Recibo de Pagamento de Proprietário</div><input type="file" id="locativaFile" accept="application/pdf"></div>
-      </div>
-      <div class="field">
-        <label>Extrato Unicred (PDF) *</label>
-        <div class="dropzone" id="extratoLocDrop"><div class="big">Arraste o PDF aqui</div><div class="small">Usado pra achar a data do TED e do resgate</div><input type="file" id="extratoLocFile" accept="application/pdf"></div>
-      </div>
-      <div class="field">
-        <label>Demonstrativo de Aplicação (Unicred, PDF)</label>
-        <div class="dropzone optional" id="aplicacaoDrop"><div class="big">Opcional</div><div class="small">Gera o lançamento de rendimento e a NFS de resgate</div><input type="file" id="aplicacaoFile" accept="application/pdf"></div>
-      </div>
-      <div class="field">
-        <label>Contas a Receber por Cliente (PDF)</label>
-        <div class="dropzone optional" id="contasReceberLocDrop"><div class="big">Opcional</div><div class="small">Dá baixa nos títulos dos 6 contratos de aluguel pagos junto no TED único da Locativa</div><input type="file" id="contasReceberLocFile" accept="application/pdf"></div>
-      </div>
-    </div>
-    <div class="btn-row"><button class="btn" id="processBtnLoc" disabled onclick="processarLocativa()">Processar</button></div>
-    <div id="mainStatusLoc" class="status-line hidden"></div>
-  </div>
-
   <div id="resultCardLoc" class="hidden"></div>
   </div>
 
   <!-- ===================== TAB: BAIXA DE SERVIÇO ===================== -->
   <div id="tabServico" class="hidden">
-  <div class="card">
-    <div class="section-title">1. Relatórios do mês</div>
-    <div class="field-row">
-      <div class="field">
-        <label>Contas a Receber por Cliente (PDF)</label>
-        <div class="dropzone" id="contasDrop"><div class="big">Arraste o PDF aqui</div><div class="small">Lê sozinho a empresa (CNPJ) do cabeçalho</div><input type="file" id="contasFile" accept="application/pdf"></div>
-      </div>
-      <div class="field">
-        <label>Extrato bancário Unicred (PDF)</label>
-        <div class="dropzone" id="extratoDrop"><div class="big">Arraste o PDF aqui</div><div class="small">Casa os créditos do extrato com os títulos em aberto, por nome + valor exato</div><input type="file" id="extratoFile" accept="application/pdf"></div>
-      </div>
-    </div>
-    <div class="btn-row"><button class="btn" id="processBtn" disabled onclick="processarBaixaServico()">Processar</button></div>
-    <div id="mainStatus" class="status-line hidden"></div>
-  </div>
   <div class="card hidden" id="resultCard"></div>
   </div>
 
   <!-- ===================== TAB: BAIXA DE PAGAMENTOS ===================== -->
   <div id="tabPagar" class="hidden">
-  <div class="card">
-    <div class="section-title">1. Relatórios do mês</div>
-    <div class="field-row">
-      <div class="field">
-        <label>Contas a Pagar por Fornecedor (PDF)</label>
-        <div class="dropzone" id="contasPagarDrop"><div class="big">Arraste o PDF aqui</div><div class="small">Lê sozinho a empresa (CNPJ) do cabeçalho</div><input type="file" id="contasPagarFile" accept="application/pdf"></div>
-      </div>
-      <div class="field">
-        <label>Extrato bancário Unicred (PDF)</label>
-        <div class="dropzone" id="extratoPagarDrop"><div class="big">Arraste o PDF aqui</div><div class="small">Casa os débitos do extrato com os títulos em aberto, por soma exata dentro de uma janela de dias até o vencimento</div><input type="file" id="extratoPagarFile" accept="application/pdf"></div>
-      </div>
-    </div>
-    <div class="btn-row"><button class="btn" id="processBtnPagar" disabled onclick="processarBaixaPagar()">Processar</button></div>
-    <div id="mainStatusPagar" class="status-line hidden"></div>
-  </div>
   <div class="card hidden" id="resultCardPagar"></div>
   </div>
 
   <!-- ===================== TAB: LANÇAMENTOS (PADRÕES) ===================== -->
   <div id="tabLanc" class="hidden">
   <div class="card">
-    <div class="section-title">1. Documentos do mês</div>
-    <div class="help">Só as linhas de despesa (débito) do extrato que <b>não</b> forem baixa de título (aba Baixa de Pagamentos) nem recebimento de aluguel/PIX/resgate (abas Locativa e Baixa de Serviço) entram aqui. Cadastro de "padrões" reconhece a linha pela palavra-chave e já preenche débito/crédito/histórico sozinho.</div>
-    <div class="field-row">
-      <div class="field">
-        <label>Contas a Pagar por Fornecedor (PDF)</label>
-        <div class="dropzone" id="contasLancDrop"><div class="big">Arraste o PDF aqui</div><div class="small">Usado só pra não duplicar lançamento de título já baixado na outra aba</div><input type="file" id="contasLancFile" accept="application/pdf"></div>
-      </div>
-      <div class="field">
-        <label>Extrato bancário Unicred (PDF)</label>
-        <div class="dropzone" id="extratoLancDrop"><div class="big">Arraste o PDF aqui</div><input type="file" id="extratoLancFile" accept="application/pdf"></div>
-      </div>
-      <div class="field">
-        <label>Código Emp. (Domínio)</label>
-        <input type="text" id="codEmp" placeholder="código da IG no Domínio">
-      </div>
-    </div>
-    <div class="btn-row"><button class="btn" id="processBtnLanc" disabled onclick="processarLancamentos()">Processar</button></div>
-    <div id="mainStatusLanc" class="status-line hidden"></div>
-  </div>
-
-  <div class="card">
     <div class="section-title">Padrões de lançamento (extrato → conta contábil)</div>
-    <div class="help">Cadastro editável: qual conta de débito/crédito usar quando a palavra-chave aparece na linha do extrato. <code>{MM}/{AAAA}</code> no histórico vira o mês/ano do lançamento (atual ou anterior, conforme a coluna Período). "Ignorar" nunca gera lançamento (já coberto por outra aba). As palavras-chave usam E lógico (todas precisam aparecer) — separe por vírgula.</div>
+    <div class="help">Só as linhas de despesa (débito) do extrato que <b>não</b> forem baixa de título (aba Baixa de Pagamentos) nem recebimento de aluguel/PIX/resgate (abas Locativa e Baixa de Serviço) entram aqui. Cadastro editável: qual conta de débito/crédito usar quando a palavra-chave aparece na linha do extrato. <code>{MM}/{AAAA}</code> no histórico vira o mês/ano do lançamento (atual ou anterior, conforme a coluna Período). "Ignorar" nunca gera lançamento (já coberto por outra aba). As palavras-chave usam E lógico (todas precisam aparecer) — separe por vírgula.</div>
     <div class="table-wrap"><table class="preview" id="padroesTable"></table></div>
     <div class="btn-row"><button class="btn ghost small" onclick="addPadraoRow()">+ Novo padrão</button></div>
   </div>
@@ -941,24 +898,43 @@ function downloadLancamentosTxt(filename, rows, codEmp){
 /* =========================================================================
    TAB LOCATIVA — pipeline principal
    ========================================================================= */
-let locativaFileState = null, extratoLocState = null, aplicacaoFileState = null, contasReceberLocFileState = null;
-wireDropzone("locativaDrop","locativaFile", (f,d)=>{ locativaFileState = f; markDropDone(d, f.name); checkReadyLoc(); });
-wireDropzone("extratoLocDrop","extratoLocFile", (f,d)=>{ extratoLocState = f; markDropDone(d, f.name); checkReadyLoc(); });
-wireDropzone("aplicacaoDrop","aplicacaoFile", (f,d)=>{ aplicacaoFileState = f; markDropDone(d, f.name); checkReadyLoc(); });
-wireDropzone("contasReceberLocDrop","contasReceberLocFile", (f,d)=>{ contasReceberLocFileState = f; markDropDone(d, f.name); checkReadyLoc(); });
-function checkReadyLoc(){ document.getElementById("processBtnLoc").disabled = !(locativaFileState && extratoLocState); }
+/* =========================================================================
+   DOCUMENTOS DO MÊS (compartilhados entre as 4 abas) + "Processar Tudo"
+   ========================================================================= */
+let fLocativa=null, fExtrato=null, fAplicacao=null, fContasReceber=null, fContasPagar=null;
+wireDropzone("locativaDrop","locativaFile", (f,d)=>{ fLocativa=f; markDropDone(d,f.name); checkReadyAll(); });
+wireDropzone("extratoDrop","extratoFile", (f,d)=>{ fExtrato=f; markDropDone(d,f.name); checkReadyAll(); });
+wireDropzone("aplicacaoDrop","aplicacaoFile", (f,d)=>{ fAplicacao=f; markDropDone(d,f.name); checkReadyAll(); });
+wireDropzone("contasReceberDrop","contasReceberFile", (f,d)=>{ fContasReceber=f; markDropDone(d,f.name); checkReadyAll(); });
+wireDropzone("contasPagarDrop","contasPagarFile", (f,d)=>{ fContasPagar=f; markDropDone(d,f.name); checkReadyAll(); });
+function checkReadyAll(){ document.getElementById("processBtnAll").disabled = !(fLocativa && fExtrato); }
+try{ document.getElementById("codEmp").value = localStorage.getItem("ig_cod_emp") || ""; }catch(e){}
+document.getElementById("codEmp").addEventListener("change", e=>{ try{ localStorage.setItem("ig_cod_emp", e.target.value.trim()); }catch(err){} });
 
+async function processarTudo(){
+  const status = document.getElementById("mainStatusAll");
+  status.classList.remove("hidden","err"); status.textContent = "Processando...";
+  const erros = [];
+  try{ await processarLocativa(); }catch(err){ console.error(err); erros.push("Locativa: "+err.message); }
+  if(fContasReceber){ try{ await processarBaixaServico(); }catch(err){ console.error(err); erros.push("Baixa de Serviço: "+err.message); } }
+  if(fContasPagar){ try{ await processarBaixaPagar(); }catch(err){ console.error(err); erros.push("Baixa de Pagamentos: "+err.message); } }
+  try{ await processarLancamentos(); }catch(err){ console.error(err); erros.push("Lançamentos: "+err.message); }
+  if(erros.length){ status.classList.add("err"); status.textContent = erros.join("\n"); }
+  else { status.classList.add("hidden"); }
+}
+
+/* =========================================================================
+   TAB LOCATIVA — pipeline principal
+   ========================================================================= */
 let locRepasseState = null, locLancamentoRows = [], locRevenueRows = [], locRendimentoRows = [], locResgateRows = [], locBaixaRows = [];
 async function processarLocativa(){
-  const status = document.getElementById("mainStatusLoc");
-  status.classList.remove("hidden","err"); status.textContent = "Processando...";
-  try{
-    const locLines = (await extractPdfAllLines(locativaFileState)).flat();
+  {
+    const locLines = (await extractPdfAllLines(fLocativa)).flat();
     const repasse = parseLocativa(locLines);
     if(!repasse.tituloValor) throw new Error("Não consegui achar o valor do Título no recibo — confere se é o PDF certo.");
     locRepasseState = repasse;
 
-    const extratoLines = (await extractPdfAllLines(extratoLocState)).flat();
+    const extratoLines = (await extractPdfAllLines(fExtrato)).flat();
     const txns = parseExtratoUnicred(extratoLines);
     const tedTxn = txns.find(t=> Math.round(Math.abs(t.valor)*100)===Math.round(repasse.tituloValor*100) && /LOCATIVA/i.test(t.descricao));
     const dataRecebimento = tedTxn ? tedTxn.data : null;
@@ -1010,8 +986,8 @@ async function processarLocativa(){
     // por valor/nome linha a linha no extrato (é uma soma), então casa por código do
     // cliente no Domínio + vencimento mais próximo do mês seguinte à competência.
     locBaixaRows = [];
-    if(contasReceberLocFileState){
-      const crParsed = await parseContasReport(contasReceberLocFileState);
+    if(fContasReceber){
+      const crParsed = await parseContasReport(fContasReceber);
       const abertos = crParsed.titulos.filter(t=> t.tipoTitulo==="cliente" && /^(ABERT|PARCIAL)/.test(normalizeText(t.situacao)));
       let vy=null, vm=null;
       if(repasse.anoMes){ vy=repasse.anoMes.y; vm=repasse.anoMes.m+1; if(vm>12){vm=1;vy++;} }
@@ -1038,8 +1014,8 @@ async function processarLocativa(){
 
     // ---- aplicação financeira (opcional) ----
     locRendimentoRows = []; locResgateRows = [];
-    if(aplicacaoFileState){
-      const itemsAllPages = await extractPdfAllItems(aplicacaoFileState);
+    if(fAplicacao){
+      const itemsAllPages = await extractPdfAllItems(fAplicacao);
       const dataReferencia = findDataReferenciaAplicacao(itemsAllPages);
       const linhas = parseAplicacaoFinanceira(itemsAllPages);
       linhas.forEach(l=>{
@@ -1053,11 +1029,7 @@ async function processarLocativa(){
       });
     }
 
-    status.classList.add("hidden");
     renderLocativaResult(dataRecebimento, semClassificar);
-  }catch(err){
-    status.classList.add("err"); status.textContent = "Erro: " + err.message;
-    console.error(err);
   }
 }
 
@@ -1239,41 +1211,15 @@ function downloadBaixaLocTxt(){
    "Aberta" do Contas a Receber, por nome + valor exato.
    ========================================================================= */
 let contasState = null, extratoState = null;
-wireDropzone("contasDrop","contasFile", async (f,d)=>{
-  const status = document.getElementById("mainStatus");
-  status.classList.remove("hidden","err"); status.textContent = "Lendo Contas a Receber...";
-  try{
-    const parsed = await parseContasReport(f);
-    if(!parsed.empresaCnpj) throw new Error('Não achei "CNPJ:" no cabeçalho deste relatório — confere se é o PDF certo.');
-    if(!parsed.titulos.length) throw new Error("Não encontrei nenhum título neste relatório.");
-    contasState = parsed;
-    markDropDone(d, `${parsed.empresaNome} (${parsed.titulos.length} títulos)`);
-    status.classList.add("hidden");
-  }catch(err){
-    status.classList.add("err"); status.textContent = "Erro: " + err.message;
-    contasState = null;
-  }
-  checkReady();
-});
-wireDropzone("extratoDrop","extratoFile", async (f,d)=>{
-  const status = document.getElementById("mainStatus");
-  status.classList.remove("hidden","err"); status.textContent = "Lendo extrato...";
-  try{
-    const pages = await extractPdfAllLines(f);
-    extratoState = parseExtratoUnicred(pages.flat());
-    if(!extratoState.length) throw new Error("Não encontrei nenhum lançamento nesse extrato.");
-    markDropDone(d, `${extratoState.length} lançamentos`);
-    status.classList.add("hidden");
-  }catch(err){
-    status.classList.add("err"); status.textContent = "Erro: " + err.message;
-    extratoState = null;
-  }
-  checkReady();
-});
-function checkReady(){ document.getElementById("processBtn").disabled = !(contasState && extratoState); }
-
 let rowsState = [];
-function processarBaixaServico(){
+async function processarBaixaServico(){
+  const parsed = await parseContasReport(fContasReceber);
+  if(!parsed.empresaCnpj) throw new Error('Não achei "CNPJ:" no cabeçalho do Contas a Receber — confere se é o PDF certo.');
+  if(!parsed.titulos.length) throw new Error("Não encontrei nenhum título no Contas a Receber.");
+  contasState = parsed;
+  const pages = await extractPdfAllLines(fExtrato);
+  extratoState = parseExtratoUnicred(pages.flat());
+
   const abertos = contasState.titulos.filter(t=> t.tipoTitulo==="cliente" && /^(ABERT|PARCIAL)/.test(normalizeText(t.situacao))).map(a=>({...a}));
   const creditos = extratoState.filter(e=>e.valor>0 && e.nome).map(e=>({...e}));
   const rows = [];
@@ -1409,44 +1355,18 @@ function downloadServTxt(){
    TAB BAIXA DE PAGAMENTOS — casa débitos do extrato com Contas a Pagar
    ========================================================================= */
 let contasPagarState = null, extratoPagarState = null, rowsStatePagar = [];
-wireDropzone("contasPagarDrop","contasPagarFile", async (f,d)=>{
-  const status = document.getElementById("mainStatusPagar");
-  status.classList.remove("hidden","err"); status.textContent = "Lendo Contas a Pagar...";
-  try{
-    const parsed = await parseContasReport(f);
-    if(!parsed.empresaCnpj) throw new Error('Não achei "CNPJ:" no cabeçalho deste relatório — confere se é o PDF certo.');
-    if(!parsed.titulos.length) throw new Error("Não encontrei nenhum título neste relatório.");
-    contasPagarState = parsed;
-    markDropDone(d, `${parsed.empresaNome} (${parsed.titulos.length} títulos)`);
-    status.classList.add("hidden");
-  }catch(err){
-    status.classList.add("err"); status.textContent = "Erro: " + err.message;
-    contasPagarState = null;
-  }
-  checkReadyPagar();
-});
-wireDropzone("extratoPagarDrop","extratoPagarFile", async (f,d)=>{
-  const status = document.getElementById("mainStatusPagar");
-  status.classList.remove("hidden","err"); status.textContent = "Lendo extrato...";
-  try{
-    const pages = await extractPdfAllLines(f);
-    extratoPagarState = parseExtratoUnicred(pages.flat());
-    if(!extratoPagarState.length) throw new Error("Não encontrei nenhum lançamento nesse extrato.");
-    markDropDone(d, `${extratoPagarState.length} lançamentos`);
-    status.classList.add("hidden");
-  }catch(err){
-    status.classList.add("err"); status.textContent = "Erro: " + err.message;
-    extratoPagarState = null;
-  }
-  checkReadyPagar();
-});
-function checkReadyPagar(){ document.getElementById("processBtnPagar").disabled = !(contasPagarState && extratoPagarState); }
-
 // Fornecedores cujo título é sempre baixado na própria data de emissão (não aparece
 // como linha própria no extrato — ex. a taxa de administração da própria Locativa,
 // que já sai descontada/acertada por fora, não em débito automático avulso).
 const FORNECEDORES_BAIXA_EMISSAO = ["LOCATIVA"];
-function processarBaixaPagar(){
+async function processarBaixaPagar(){
+  const parsed = await parseContasReport(fContasPagar);
+  if(!parsed.empresaCnpj) throw new Error('Não achei "CNPJ:" no cabeçalho do Contas a Pagar — confere se é o PDF certo.');
+  if(!parsed.titulos.length) throw new Error("Não encontrei nenhum título no Contas a Pagar.");
+  contasPagarState = parsed;
+  const pages = await extractPdfAllLines(fExtrato);
+  extratoPagarState = parseExtratoUnicred(pages.flat());
+
   const todosAbertos = contasPagarState.titulos.filter(t=> normalizeText(t.situacao).startsWith("ABERT")).map(a=>({...a}));
   const baixaEmissao = todosAbertos.filter(a=> FORNECEDORES_BAIXA_EMISSAO.some(k=> normalizeText(a.nome).includes(normalizeText(k))));
   const abertos = todosAbertos.filter(a=> !baixaEmissao.includes(a));
@@ -1600,44 +1520,13 @@ function updatePadrao(i, field, val){
 function addPadraoRow(){ padroesDB.push({keywords:[], debito:null, credito:8, hist:"", periodo:null, ignorar:false}); savePadroes(padroesDB); renderPadroesTable(); }
 function removePadrao(i){ padroesDB.splice(i,1); savePadroes(padroesDB); renderPadroesTable(); }
 
-try{ document.getElementById("codEmp").value = localStorage.getItem("ig_cod_emp") || ""; }catch(e){}
-document.getElementById("codEmp").addEventListener("change", e=>{ try{ localStorage.setItem("ig_cod_emp", e.target.value.trim()); }catch(err){} });
-
 let contasLancState = null, extratoLancState = null, rowsStateLanc = [];
-wireDropzone("contasLancDrop","contasLancFile", async (f,d)=>{
-  const status = document.getElementById("mainStatusLanc");
-  status.classList.remove("hidden","err"); status.textContent = "Lendo Contas a Pagar...";
-  try{
-    const parsed = await parseContasReport(f);
-    if(!parsed.empresaCnpj) throw new Error('Não achei "CNPJ:" no cabeçalho deste relatório — confere se é o PDF certo.');
-    contasLancState = parsed;
-    markDropDone(d, `${parsed.empresaNome} (${parsed.titulos.length} títulos)`);
-    status.classList.add("hidden");
-  }catch(err){
-    status.classList.add("err"); status.textContent = "Erro: " + err.message;
-    contasLancState = null;
-  }
-  checkReadyLanc();
-});
-wireDropzone("extratoLancDrop","extratoLancFile", async (f,d)=>{
-  const status = document.getElementById("mainStatusLanc");
-  status.classList.remove("hidden","err"); status.textContent = "Lendo extrato...";
-  try{
-    const pages = await extractPdfAllLines(f);
-    extratoLancState = parseExtratoUnicred(pages.flat());
-    if(!extratoLancState.length) throw new Error("Não encontrei nenhum lançamento nesse extrato.");
-    markDropDone(d, `${extratoLancState.length} lançamentos`);
-    status.classList.add("hidden");
-  }catch(err){
-    status.classList.add("err"); status.textContent = "Erro: " + err.message;
-    extratoLancState = null;
-  }
-  checkReadyLanc();
-});
-function checkReadyLanc(){ document.getElementById("processBtnLanc").disabled = !(contasLancState && extratoLancState); }
-
-function processarLancamentos(){
+async function processarLancamentos(){
   const bankConta = 8;
+  if(fContasPagar) contasLancState = await parseContasReport(fContasPagar);
+  const pages = await extractPdfAllLines(fExtrato);
+  extratoLancState = parseExtratoUnicred(pages.flat());
+
   const abertos = contasLancState ? contasLancState.titulos.filter(t=> t.tipoTitulo==="fornecedor" && normalizeText(t.situacao).startsWith("ABERT")).map(a=>({...a})) : [];
   const debitLumps = [];
   extratoLancState.forEach((e, origIdx)=>{ if(e.valor<0) debitLumps.push({...e, valor:Math.abs(e.valor), _origIdx:origIdx}); });
