@@ -1000,7 +1000,7 @@ function getNfsRowsUnificado(){
 function getBaixaSerRowsUnificado(){
   const aluguel = locBaixaRows;
   const servico = rowsState.filter(r=> r.incluir!==false);
-  const resgate = locResgateRows.map(r=>({numero:r.numeroDocumento||"", cnpj:UNICRED_CNPJ, nome:"UNICRED", vencimento:r.dataResgate, databaixa:r.dataResgate, valor:r.rendimentoPago, juros:r.resgateValor||0, multa:0, desconto:0, pis:0, cofins:0, csll:0, irrf:r.irRetido}));
+  const resgate = locResgateRows.map(r=>({numero:r.numeroDocumento||"", cnpj:UNICRED_CNPJ, nome:"UNICRED", vencimento:r.dataResgate, databaixa:r.dataResgate, valor:r.resgateValor||0, juros:r.rendimentoPago, multa:0, desconto:0, pis:0, cofins:0, csll:0, irrf:r.irRetido}));
   return [...aluguel, ...servico, ...resgate];
 }
 function renderExportUnificado(){
@@ -1318,11 +1318,11 @@ function nfsInfoParaResgate(r){
 function downloadNfsResgateXlsx(){ downloadNfsXlsx("nfs_resgate_ig.xlsx", locResgateRows.map(nfsInfoParaResgate)); }
 function downloadNfsResgateTxt(){ downloadNfsTxt("ServicoPrest.txt", locResgateRows.map(nfsInfoParaResgate)); }
 
-// Baixa da própria NF de resgate: o valor recebido é o total resgatado conforme o
-// banco (resgate/principal + rendimento pago) — a diferença pro valor da NF (só o
-// rendimento) entra como Juros, conforme pedido.
+// Baixa da própria NF de resgate: Valor Recebido = total resgatado conforme o banco
+// (resgate/principal), Juros = valor da renda tributada (rendimento pago) — a
+// diferença fica no campo Juros, conforme pedido (antes estava invertido).
 function rowArrayBaixaResgate(r){
-  return [r.numeroDocumento||"", "U", onlyDigits(UNICRED_CNPJ), fmtDateBR(r.dataResgate), fmtDateBR(r.dataResgate), r.rendimentoPago, r.resgateValor||0, 0, 0, 0, 0, 0, r.irRetido];
+  return [r.numeroDocumento||"", "U", onlyDigits(UNICRED_CNPJ), fmtDateBR(r.dataResgate), fmtDateBR(r.dataResgate), r.resgateValor||0, r.rendimentoPago, 0, 0, 0, 0, 0, r.irRetido];
 }
 function downloadBaixaResgateXlsx(){
   const header = ["Número da Nota","Série do Documento","CPF/CNPJ do Cliente","Data de Vencimento da Parcela","Data da Baixa da Parcela","Valor Recebido","Valor Juros","Valor Multa","Valor Desconto","Valor PIS","Valor COFINS","Valor CSLL","Valor IRRF"];
