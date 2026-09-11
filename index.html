@@ -685,6 +685,7 @@ const CONTAS_FIXAS_SEED = [
   {chave:"manutencao", desc:"Manutenção de apartamento (quando houver)", conta:332},
   {chave:"impostosAdiantados", desc:"Adiantamento a Locativa (PIS/COFINS/CSLL)", conta:736},
   {chave:"rendimentoAplicacao", desc:"Rendimento de Aplicação Financeira (receita financeira, crédito)", conta:395},
+  {chave:"agua", desc:"Água (A09) repassada pelos inquilinos — crédito, separado do aluguel", conta:902},
 ];
 function loadWithMerge(key, seed, keyFn){
   let saved = [];
@@ -1051,7 +1052,7 @@ async function processarLocativa(){
     const mesAnterior = repasse.anoMes ? `${String(repasse.anoMes.m).padStart(2,"0")}/${repasse.anoMes.y}` : "";
 
     // ---- soma os itens de cada contrato + separa o bloco "0" (geral) ----
-    let taxaAdm=0, despBancaria=0, impostos=0, manutencao=0, iptu=0;
+    let taxaAdm=0, despBancaria=0, impostos=0, manutencao=0, iptu=0, aguaTotal=0;
     const revenue = []; // uma linha por contrato com aluguel/água
     const semClassificar = [];
     repasse.contratos.forEach(ct=>{
@@ -1067,11 +1068,12 @@ async function processarLocativa(){
         else if(tipo==="outroDebito" && /iptu/i.test(it.desc)){ iptu += Math.abs(it.valor); temItemContrato=true; }
         else { semClassificar.push({contrato:ct.contrato, ...it}); }
       });
+      aguaTotal += agua;
       if(ct.contrato!=="0" && (aluguel!==0 || agua!==0)){
         const cad = getContrato(ct.contrato);
         revenue.push({
           contrato: ct.contrato, cliente: cad?cad.cliente:ct.locatario, imovel: cad?cad.imovel:ct.endereco,
-          conta: cad?cad.contaReceita:null, valor: aluguel+agua, aluguel, agua, numeroDocumento:"",
+          conta: cad?cad.contaReceita:null, valor: aluguel, aluguel, agua, numeroDocumento:"",
           flag: !cad || cad.contaReceita==null,
         });
       }
@@ -1085,6 +1087,7 @@ async function processarLocativa(){
     if(manutencao>0) locLancamentoRows.push({chave:"manutencao", conta:getContaFixa("manutencao"), lado:"D", valor:manutencao, hist:`PAGAMENTO REF. MANUTENÇÃO NO REPASSE DE ${mesAnterior} - LOCATIVA`, editavel:true});
     if(iptu>0) locLancamentoRows.push({chave:"iptuRepasse", conta:getContaFixa("iptuRepasse"), lado:"D", valor:iptu, hist:`PAGAMENTO REF. IPTU NO REPASSE DE ${mesAnterior} - LOCATIVA`, editavel:true});
     locLancamentoRows.push({chave:"impostosAdiantados", conta:getContaFixa("impostosAdiantados"), lado:"C", valor:impostos, hist:`RECEBIMENTO REF. IMPOSTOS ADIANTADOS ${mesAnterior} - LOCATIVA`, editavel:true});
+    if(aguaTotal>0) locLancamentoRows.push({chave:"agua", conta:getContaFixa("agua"), lado:"C", valor:aguaTotal, hist:`RECEBIMENTO REF. ÁGUA REPASSADA PELOS INQUILINOS NO REPASSE DE ${mesAnterior} - LOCATIVA`, editavel:true});
 
     locRevenueRows = revenue;
 
