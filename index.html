@@ -160,6 +160,8 @@ code{background:var(--paper);padding:1px 5px;border-radius:3px;font-family:'IBM 
     <div id="mainStatusAll" class="status-line hidden"></div>
   </div>
 
+  <div class="card hidden" id="resultCardExportar"></div>
+
   <div class="tabbar" id="tabbar">
     <div class="tabbtn active" data-tab="locativa" onclick="selectTab('locativa')">Locativa (mês)</div>
     <div class="tabbtn" data-tab="servico" onclick="selectTab('servico')">Baixa de Serviço</div>
@@ -962,6 +964,69 @@ async function processarTudo(){
   try{ await processarLancamentos(); }catch(err){ console.error(err); erros.push("Lançamentos: "+err.message); }
   if(erros.length){ status.classList.add("err"); status.textContent = erros.join("\n"); }
   else { status.classList.add("hidden"); }
+  renderExportUnificado();
+}
+
+/* =========================================================================
+   EXPORTAÇÃO UNIFICADA — junta o que saiu de cada aba num arquivo só por
+   tipo (Lançamentos, NFS, Baixa de Serviço, Baixa de Pagamentos), pra não
+   ter que importar 3 relatórios diferentes de lançamentos/NFS/baixas.
+   ========================================================================= */
+function getLancRowsUnificado(){
+  const repasse = locLancamentoRows.map((r,i)=>({data:locDataRecebimento, debito: r.lado==="D"?r.conta:null, credito: r.lado==="C"?r.conta:null, valor:r.valor, hist:r.hist, iniciaLote: i===0?1:""}));
+  const revenue = locRevenueRows.map(r=>({data:locDataRecebimento, debito:null, credito:r.conta, valor:r.valor, hist:`RECEBIMENTO NF Nº ${r.numeroDocumento||'?'} - ${r.cliente}`, codHist:100, iniciaLote:""}));
+  const rendimento = locRendimentoRows.map((r,i)=>({data:r.data, debito:r.conta, credito:r.creditoReceita, valor:r.valor, hist:`RECEBIMENTO REF. RENDIMENTO DE APLICAÇÃO FINANCEIRA - TÍTULO ${r.titulo}`, iniciaLote:""}));
+  const padroes = rowsStateLanc.filter(r=>r.incluir!==false);
+  return [...repasse, ...revenue, ...rendimento, ...padroes];
+}
+function getNfsRowsUnificado(){
+  const aluguel = locRevenueRows.map(nfsInfoParaContrato);
+  const resgate = locResgateRows.map(nfsInfoParaResgate);
+  const diretos = rowsState.filter(r=> r.incluir!==false && getContratoPorCliente(r.nome) && getContratoPorCliente(r.nome).direto).map(nfsInfoParaDireto);
+  return [...aluguel, ...resgate, ...diretos];
+}
+function getBaixaSerRowsUnificado(){
+  const aluguel = locBaixaRows;
+  const servico = rowsState.filter(r=> r.incluir!==false);
+  const resgate = locResgateRows.map(r=>({numero:r.numeroDocumento||"", cnpj:UNICRED_CNPJ, nome:"UNICRED", vencimento:r.dataResgate, databaixa:r.dataResgate, valor:r.rendimentoPago, juros:r.resgateValor||0, multa:0, desconto:0, pis:0, cofins:0, csll:0, irrf:r.irRetido}));
+  return [...aluguel, ...servico, ...resgate];
+}
+function renderExportUnificado(){
+  const box = document.getElementById("resultCardExportar");
+  const lanc = getLancRowsUnificado();
+  const nfs = getNfsRowsUnificado();
+  const baixaSer = getBaixaSerRowsUnificado();
+  const baixaEnt = rowsStatePagar;
+  if(!lanc.length && !nfs.length && !baixaSer.length && !baixaEnt.length){ box.classList.add("hidden"); return; }
+  box.classList.remove("hidden");
+  box.innerHTML = `<div class="section-title">Exportar tudo (arquivo único por tipo)</div>
+  <div class="help">Junta o que foi gerado em todas as abas — não precisa importar um relatório por aba. Revise cada aba antes de exportar (linhas em vermelho não entram).</div>
+  <div class="summary-row">
+    <div class="item"><div class="k">Lançamentos</div><div class="v">${lanc.length}</div></div>
+    <div class="item"><div class="k">NFS</div><div class="v">${nfs.length}</div></div>
+    <div class="item"><div class="k">Baixa Serviço</div><div class="v">${baixaSer.length}</div></div>
+    <div class="item"><div class="k">Baixa Pagamentos</div><div class="v">${baixaEnt.length}</div></div>
+  </div>
+  <div class="btn-row">
+    <button class="btn" onclick="downloadLancamentosXlsx('lancamentos_ig.xlsx', getLancRowsUnificado(), document.getElementById('codEmp').value.trim())">Lançamentos — .xlsx</button>
+    <button class="btn ghost" onclick="downloadLancamentosTxt('lanctos.txt', getLancRowsUnificado(), document.getElementById('codEmp').value.trim())">Lançamentos — .txt</button>
+    <button class="btn" onclick="downloadNfsXlsx('nfs_ig.xlsx', getNfsRowsUnificado())">NFS — .xlsx</button>
+    <button class="btn ghost" onclick="downloadNfsTxt('ServicoPrest.txt', getNfsRowsUnificado())">NFS — .txt</button>
+    <button class="btn" onclick="downloadBaixaSerUnificadoXlsx()">Baixa Serviço — .xlsx</button>
+    <button class="btn ghost" onclick="downloadBaixaSerUnificadoTxt()">Baixa Serviço — .txt</button>
+    <button class="btn" onclick="downloadResultXlsxPagar()">Baixa Pagamentos — .xlsx</button>
+    <button class="btn ghost" onclick="downloadResultTxtPagar()">Baixa Pagamentos — .txt</button>
+  </div>`;
+}
+function downloadBaixaSerUnificadoXlsx(){
+  const rows = getBaixaSerRowsUnificado();
+  const header = ["Número da Nota","Série do Documento","CPF/CNPJ do Cliente","Data de Vencimento da Parcela","Data da Baixa da Parcela","Valor Recebido","Valor Juros","Valor Multa","Valor Desconto","Valor PIS","Valor COFINS","Valor CSLL","Valor IRRF"];
+  downloadXlsx("baixa_servicos.xlsx", [header, ...rows.map(rowArrayServ)], "Baixa");
+}
+function downloadBaixaSerUnificadoTxt(){
+  const rows = getBaixaSerRowsUnificado();
+  const lines = rows.map(r=> rowArrayServ(r).map((v,i)=> i>=5 ? fmtValorTxt(v) : v).join(";"));
+  downloadText("baixa_ser.txt", lines.join("\r\n") + "\r\n");
 }
 
 /* =========================================================================
@@ -1122,12 +1187,7 @@ function renderLocativaResult(dataRecebimento, semClassificar){
       semClassificar.map(it=>`Contrato ${it.contrato} — ${it.codigo}=${it.desc}: ${fmtBRL(it.valor)}`).join("<br>") + `</div>`;
   }
 
-  html += `<div class="btn-row">
-    <button class="btn" onclick="downloadLocLancamentosXlsx()">Lançamentos Repasse — .xlsx</button>
-    <button class="btn ghost" onclick="downloadLocLancamentosTxt()">Lançamentos Repasse — .txt</button>
-    <button class="btn" onclick="downloadNfsAluguelXlsx()">NFS Aluguel — .xlsx</button>
-    <button class="btn ghost" onclick="downloadNfsAluguelTxt()">NFS Aluguel — .txt</button>
-  </div></div>`;
+  html += `</div>`;
 
   if(locRendimentoRows.length){
     html += `<div class="card"><div class="section-title">Rendimento do mês (lançamento contábil, sem NF)</div>
@@ -1139,7 +1199,6 @@ function renderLocativaResult(dataRecebimento, semClassificar){
         <td class="cell"><input class="cell-input" style="width:70px" value="${r.creditoReceita??''}" onchange="updateRendimentoRow(${i},'creditoReceita',this.value)"></td>
         <td class="cell"><input class="cell-input num" value="${fmtBRL(r.valor)}" onchange="updateRendimentoRow(${i},'valor',this.value)"></td>
       </tr>`).join("") + `</tbody></table></div>
-    <div class="btn-row"><button class="btn" onclick="downloadRendimentoXlsx()">Lançamento Rendimento — .xlsx</button><button class="btn ghost" onclick="downloadRendimentoTxt()">Lançamento Rendimento — .txt</button></div>
     </div>`;
   }
 
@@ -1156,7 +1215,6 @@ function renderLocativaResult(dataRecebimento, semClassificar){
         <td class="cell"><input class="cell-input num" value="${fmtBRL(r.valor)}" onchange="updateBaixaLocRow(${i},'valor',this.value)"></td>
         <td>${r.statusText||''}</td>
       </tr>`).join("") + `</tbody></table></div>
-    <div class="btn-row"><button class="btn" onclick="downloadBaixaLocXlsx()">Baixar baixa_servicos.xlsx</button><button class="btn ghost" onclick="downloadBaixaLocTxt()">Baixar baixa_ser.txt</button></div>
     </div>`;
   }
 
@@ -1172,10 +1230,6 @@ function renderLocativaResult(dataRecebimento, semClassificar){
         <td class="cell"><input class="cell-input" style="width:80px" value="${r.dataResgate?fmtDateBR(r.dataResgate):''}" onchange="updateResgateRow(${i},'dataResgate',this.value)"></td>
         <td class="cell"><input class="cell-input" style="width:70px" value="${r.numeroDocumento||''}" onchange="updateResgateRow(${i},'numeroDocumento',this.value)"></td>
       </tr>`).join("") + `</tbody></table></div>
-    <div class="btn-row">
-      <button class="btn" onclick="downloadNfsResgateXlsx()">NFS Resgate — .xlsx</button><button class="btn ghost" onclick="downloadNfsResgateTxt()">NFS Resgate — .txt</button>
-      <button class="btn" onclick="downloadBaixaResgateXlsx()">Baixa NF Resgate — .xlsx</button><button class="btn ghost" onclick="downloadBaixaResgateTxt()">Baixa NF Resgate — .txt</button>
-    </div>
     </div>`;
   }
 
@@ -1222,7 +1276,7 @@ function nfsInfoParaContrato(r){
   const info = r.cnpjResolvido ? {documento:r.cnpjResolvido} : resolverCnpjPorNome(r.cliente);
   return {
     cnpj: info?info.documento:"", razaoSocial: r.cliente,
-    endereco: r.imovel||"", numeroDocumento: r.numeroDocumento||"", data: null, valor: r.valor, irrf:0,
+    endereco: r.imovel||"", numeroDocumento: r.numeroDocumento||"", data: locDataRecebimento, valor: r.valor, irrf:0,
   };
 }
 function downloadNfsAluguelXlsx(){ downloadNfsXlsx("nfs_aluguel_ig.xlsx", locRevenueRows.map(nfsInfoParaContrato)); }
@@ -1312,21 +1366,24 @@ async function processarBaixaServico(){
     };
   }
 
-  const restantes = abertos.map(a=>({...a}));
   creditos.sort((a,b)=>partsToDate(a.data)-partsToDate(b.data)).forEach(e=>{
-    const candidatosNome = restantes.filter(a=>!a._used).map(a=>({nome:a.nome, titulo:a}));
+    const candidatosNome = abertos.filter(a=>!a._used).map(a=>({nome:a.nome, titulo:a}));
     const nm = findBestNameMatch(e.nome, candidatosNome);
     if(!nm){ return; } // fica fora — provavelmente já coberto pela aba Locativa (TED único) ou não é cliente
-    const poolCliente = restantes.filter(a=> !a._used && normalizeText(a.nome)===normalizeText(nm.match.nome));
+    const poolCliente = abertos.filter(a=> !a._used && normalizeText(a.nome)===normalizeText(nm.match.nome));
     const found = dpSubsetExact(poolCliente, Math.round(e.valor*100));
     if(found){
       found.forEach(t=> rows.push(buildRow(t, e.data, e.valor, 0, null, "OK (extrato, nome + valor exato)")));
-    } else if(poolCliente.length===1 && e.valor > poolCliente[0].valorParcela){
-      // valor recebido maior que a parcela — comum quando o cliente paga a NF + um
-      // acerto à parte (ex. ressarcimento de água); a diferença fica sinalizada
-      // como "Outras" pra conferência manual em vez de ser assumida como juros.
-      const dif = Math.round((e.valor - poolCliente[0].valorParcela)*100)/100;
-      const row = buildRow(poolCliente[0], e.data, poolCliente[0].valorParcela, 0, "warn", `Recebeu ${fmtBRL(e.valor)}, NF é ${fmtBRL(poolCliente[0].valorParcela)} — diferença de ${fmtBRL(dif)} não incluída, confira (pode ser acerto de água ou juros)`);
+    } else if(poolCliente.length){
+      // Não achou soma exata (valor recebido maior/menor que a parcela — comum quando
+      // o cliente paga a NF + um acerto à parte, ex. ressarcimento de água) — mesmo
+      // com mais de um título aberto do mesmo cliente (ex. Arlindo, 2 meses em aberto
+      // ao mesmo tempo), gera uma linha revisável em vez de simplesmente não gerar
+      // nada, pegando o título de vencimento mais antigo como alvo mais provável.
+      poolCliente.sort((a,b)=>partsToDate(a.vencimento)-partsToDate(b.vencimento));
+      const alvo = poolCliente[0];
+      const dif = Math.round((e.valor - alvo.valorParcela)*100)/100;
+      const row = buildRow(alvo, e.data, alvo.valorParcela, 0, "warn", `Recebeu ${fmtBRL(e.valor)}, NF é ${fmtBRL(alvo.valorParcela)} — diferença de ${fmtBRL(dif)} não incluída, confira (pode ser acerto de água ou juros, ou outro título do mesmo cliente)`);
       rows.push(row);
     }
   });
@@ -1378,19 +1435,8 @@ function renderResultTable(empresaNome, empresaCnpj){
       <td style="text-align:center"><input type="checkbox" ${r.incluir===false?'':'checked'} onchange="toggleServRow(${i},this.checked)"></td>
     </tr>`;
   });
-  const diretos = rows.filter(r=> r.incluir!==false && getContratoPorCliente(r.nome) && getContratoPorCliente(r.nome).direto);
   html += `</tbody></table></div>
-  <div class="btn-row">
-    <button class="btn" onclick="downloadServXlsx()">Baixar baixa_servicos.xlsx</button>
-    <button class="btn ghost" onclick="downloadServTxt()">Baixar baixa_ser.txt</button>
-  </div>`;
-  if(diretos.length){
-    html += `<div class="help" style="margin-top:14px;">Contratos diretos (fora da Locativa, ex. Arlindo) — não entram no lançamento composto da aba Locativa, só precisam de baixa (acima) e NFS:</div>
-    <div class="btn-row">
-      <button class="btn" onclick="downloadNfsDiretaXlsx()">NFS Contratos Diretos — .xlsx</button>
-      <button class="btn ghost" onclick="downloadNfsDiretaTxt()">NFS Contratos Diretos — .txt</button>
-    </div>`;
-  }
+  <div class="help">Exportação: veja o bloco "Exportar tudo" no topo da página (junta com as outras abas num arquivo só).</div>`;
   box.innerHTML = html;
   document.getElementById("cnpjHelperCard").classList.toggle("hidden", rows.every(r=>r.cnpj));
   document.getElementById("cnpjHelperEmpresa").textContent = `da IG (CNPJ ${empresaCnpj})`;
@@ -1690,10 +1736,7 @@ function renderLancTable(){
     </tr>`;
   });
   html += `</tbody></table></div>
-  <div class="btn-row">
-    <button class="btn" onclick="downloadLancXlsx()">Baixar lancamentos_ig.xlsx</button>
-    <button class="btn ghost" onclick="downloadLancTxt()">Baixar lanctos.txt</button>
-  </div>`;
+  <div class="help">Exportação: veja o bloco "Exportar tudo" no topo da página (junta com as outras abas num arquivo só).</div>`;
   box.innerHTML = html;
 }
 function updateLancRow(i, field, val){
