@@ -588,16 +588,24 @@ function matchAll(lumps, abertos){
   const unmatchedAbertos = abertos.filter(a=>!a._used);
   return {results, wideResolved, unmatchedLumpIdx:remaining, unmatchedAbertos};
 }
+// Palavras genéricas demais (forma societária) pra contar como sinal de casamento —
+// "LTDA" aparece em quase todo nome de empresa, então sozinha ela já "casava" nomes
+// de empresas completamente diferentes (bug real: TTK puxou o CNPJ da Colix só por
+// causa do "LTDA" em comum, sem nenhuma outra palavra batendo).
+const NOME_STOPWORDS = new Set(["LTDA","ME","EPP","SA","EIRELI","CIA","S/A","S.A","LTDA.","LTDA-ME"]);
+function palavrasSignificativas(norm){ return norm.split(/\s+/).filter(w=>w.length>2 && !NOME_STOPWORDS.has(w)); }
 function findBestNameMatch(nome, candidatos){
   const norm = normalizeText(nome);
-  const words = norm.split(/\s+/).filter(w=>w.length>2);
+  const words = palavrasSignificativas(norm);
   let best=null, bestScore=0;
   candidatos.forEach(c=>{
     const cn = normalizeText(c.nome);
     let score = 0;
     if(cn.includes(norm) || norm.includes(cn)) score += 10;
     words.forEach(w=>{ if(cn.includes(w)) score += 1; });
-    if(score>bestScore){ bestScore=score; best=c; }
+    // Exige substring completa (score>=10) OU pelo menos 2 palavras significativas em
+    // comum — uma palavra genérica isolada não é sinal confiável o suficiente.
+    if(score>bestScore && (score>=10 || score>=2)){ bestScore=score; best=c; }
   });
   return bestScore>0 ? {match:best, score:bestScore} : null;
 }
@@ -613,7 +621,7 @@ function resolverCnpj(empresaCnpj, tipoTitulo, codigo, nomeRelatorio){
     return {documento: doc, nome: clientesDB[doc].razao_social};
   }
   const norm = normalizeText(nomeRelatorio);
-  const words = norm.split(/\s+/).filter(w=>w.length>2);
+  const words = palavrasSignificativas(norm);
   let best=null, bestScore=0, bestKey=null;
   Object.keys(clientesDB).forEach(key=>{
     const c = clientesDB[key];
@@ -621,7 +629,7 @@ function resolverCnpj(empresaCnpj, tipoTitulo, codigo, nomeRelatorio){
     let score = 0;
     if(cn.includes(norm) || norm.includes(cn)) score += 10;
     words.forEach(w=>{ if(cn.includes(w)) score += 1; });
-    if(score>bestScore){ bestScore=score; best=c; bestKey=key; }
+    if(score>bestScore && (score>=10 || score>=2)){ bestScore=score; best=c; bestKey=key; }
   });
   return bestScore>0 ? {documento:bestKey, nome:best.razao_social} : null;
 }
@@ -636,7 +644,7 @@ function rebuildCodigoIndex(){
 // Resolve CNPJ/CPF só pelo NOME (usado na tela de Cadastros/Locativa, sem código de título).
 function resolverCnpjPorNome(nome){
   const norm = normalizeText(nome);
-  const words = norm.split(/\s+/).filter(w=>w.length>2);
+  const words = palavrasSignificativas(norm);
   let best=null, bestScore=0, bestKey=null;
   Object.keys(clientesDB).forEach(key=>{
     const c = clientesDB[key];
@@ -644,7 +652,7 @@ function resolverCnpjPorNome(nome){
     let score = 0;
     if(cn.includes(norm) || norm.includes(cn)) score += 10;
     words.forEach(w=>{ if(cn.includes(w)) score += 1; });
-    if(score>bestScore){ bestScore=score; best=c; bestKey=key; }
+    if(score>bestScore && (score>=10 || score>=2)){ bestScore=score; best=c; bestKey=key; }
   });
   return bestScore>0 ? {documento:bestKey, nome:best.razao_social} : null;
 }
