@@ -1210,8 +1210,9 @@ function downloadRendimentoTxt(){
   const rows = locRendimentoRows.map((r,i)=>({data:r.data, debito:r.conta, credito:r.creditoReceita, valor:r.valor, hist:`RECEBIMENTO REF. RENDIMENTO DE APLICAÇÃO FINANCEIRA - TÍTULO ${r.titulo}`, iniciaLote:i===0?1:""}));
   downloadLancamentosTxt("lancamento_rendimento_ig.txt", rows, "");
 }
+const UNICRED_CNPJ = "00075847000135";
 function nfsInfoParaResgate(r){
-  return {cnpj:"", razaoSocial:"UNICRED", endereco:"", numeroDocumento:r.numeroDocumento||"", data:r.dataResgate, valor:r.rendimentoPago, irrf:r.irRetido};
+  return {cnpj:UNICRED_CNPJ, razaoSocial:"UNICRED", endereco:"", numeroDocumento:r.numeroDocumento||"", data:r.dataResgate, valor:r.rendimentoPago, irrf:r.irRetido};
 }
 function downloadNfsResgateXlsx(){ downloadNfsXlsx("nfs_resgate_ig.xlsx", locResgateRows.map(nfsInfoParaResgate)); }
 function downloadNfsResgateTxt(){ downloadNfsTxt("nfs_resgate_ig.txt", locResgateRows.map(nfsInfoParaResgate)); }
