@@ -967,7 +967,7 @@ async function processarTudo(){
 /* =========================================================================
    TAB LOCATIVA — pipeline principal
    ========================================================================= */
-let locRepasseState = null, locLancamentoRows = [], locRevenueRows = [], locRendimentoRows = [], locResgateRows = [], locBaixaRows = [];
+let locRepasseState = null, locLancamentoRows = [], locRevenueRows = [], locRendimentoRows = [], locResgateRows = [], locBaixaRows = [], locDataRecebimento = null;
 async function processarLocativa(){
   {
     const locLines = (await extractPdfAllLines(fLocativa)).flat();
@@ -979,6 +979,7 @@ async function processarLocativa(){
     const txns = parseExtratoUnicred(extratoLines);
     const tedTxn = txns.find(t=> Math.round(Math.abs(t.valor)*100)===Math.round(repasse.tituloValor*100) && /LOCATIVA/i.test(t.descricao));
     const dataRecebimento = tedTxn ? tedTxn.data : null;
+    locDataRecebimento = dataRecebimento;
 
     // O "Ano/Mês" do recibo já É a competência do aluguel (mês anterior ao repasse,
     // que sempre cai no mês seguinte) — não subtrai mais um mês aqui.
@@ -1083,6 +1084,7 @@ function totalLancDebitos(){ return locLancamentoRows.filter(r=>r.lado==="D").re
 function totalLancCreditos(){ return locLancamentoRows.filter(r=>r.lado==="C").reduce((s,r)=>s+r.valor,0) + locRevenueRows.reduce((s,r)=>s+r.valor,0); }
 
 function renderLocativaResult(dataRecebimento, semClassificar){
+  dataRecebimento = dataRecebimento || locDataRecebimento;
   const box = document.getElementById("resultCardLoc");
   box.classList.remove("hidden");
   const saldo = Math.round((totalLancDebitos()-totalLancCreditos())*100)/100;
@@ -1206,14 +1208,14 @@ function updateResgateRow(i, field, val){
 }
 function downloadLocLancamentosXlsx(){
   const codEmp = "";
-  const rows = locLancamentoRows.map((r,i)=>({data:null, debito: r.lado==="D"?r.conta:null, credito: r.lado==="C"?r.conta:null, valor:r.valor, hist:r.hist, iniciaLote: i===0?1:""}))
-    .concat(locRevenueRows.map(r=>({data:null, debito:null, credito:r.conta, valor:r.valor, hist:`RECEBIMENTO NF Nº ${r.numeroDocumento||'?'} - ${r.cliente}`, codHist:100, iniciaLote:""})));
+  const rows = locLancamentoRows.map((r,i)=>({data:locDataRecebimento, debito: r.lado==="D"?r.conta:null, credito: r.lado==="C"?r.conta:null, valor:r.valor, hist:r.hist, iniciaLote: i===0?1:""}))
+    .concat(locRevenueRows.map(r=>({data:locDataRecebimento, debito:null, credito:r.conta, valor:r.valor, hist:`RECEBIMENTO NF Nº ${r.numeroDocumento||'?'} - ${r.cliente}`, codHist:100, iniciaLote:""})));
   downloadLancamentosXlsx("lancamentos_locativa.xlsx", rows, codEmp);
 }
 function downloadLocLancamentosTxt(){
   const codEmp = "";
-  const rows = locLancamentoRows.map((r,i)=>({data:null, debito: r.lado==="D"?r.conta:null, credito: r.lado==="C"?r.conta:null, valor:r.valor, hist:r.hist, iniciaLote: i===0?1:""}))
-    .concat(locRevenueRows.map(r=>({data:null, debito:null, credito:r.conta, valor:r.valor, hist:`RECEBIMENTO NF Nº ${r.numeroDocumento||'?'} - ${r.cliente}`, codHist:100, iniciaLote:""})));
+  const rows = locLancamentoRows.map((r,i)=>({data:locDataRecebimento, debito: r.lado==="D"?r.conta:null, credito: r.lado==="C"?r.conta:null, valor:r.valor, hist:r.hist, iniciaLote: i===0?1:""}))
+    .concat(locRevenueRows.map(r=>({data:locDataRecebimento, debito:null, credito:r.conta, valor:r.valor, hist:`RECEBIMENTO NF Nº ${r.numeroDocumento||'?'} - ${r.cliente}`, codHist:100, iniciaLote:""})));
   downloadLancamentosTxt("lanctos.txt", rows, codEmp);
 }
 function nfsInfoParaContrato(r){
