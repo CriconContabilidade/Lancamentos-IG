@@ -913,7 +913,7 @@ function nfsRowArray(r){
   row[6] = "U";
   row[7] = fmtDateBR(r.data);
   row[8] = "0";      // Situação
-  row[9] = "2";      // Acumulador
+  row[9] = r.acumulador || "2"; // Acumulador (aluguel/serviço direto = 2; resgate/rendimento = 6)
   row[10] = "9101";  // CFPS
   row[11] = r.valor; // Valor Serviços
   row[14] = r.valor; // Valor Contábil
@@ -1313,7 +1313,7 @@ function downloadRendimentoTxt(){
 }
 const UNICRED_CNPJ = "00075847000135";
 function nfsInfoParaResgate(r){
-  return {cnpj:UNICRED_CNPJ, razaoSocial:"UNICRED", endereco:"", numeroDocumento:r.numeroDocumento||"", data:r.dataResgate, valor:r.rendimentoPago, irrf:r.irRetido};
+  return {cnpj:UNICRED_CNPJ, razaoSocial:"UNICRED", endereco:"", numeroDocumento:r.numeroDocumento||"", data:r.dataResgate, valor:r.rendimentoPago, irrf:r.irRetido, acumulador:"6"};
 }
 function downloadNfsResgateXlsx(){ downloadNfsXlsx("nfs_resgate_ig.xlsx", locResgateRows.map(nfsInfoParaResgate)); }
 function downloadNfsResgateTxt(){ downloadNfsTxt("ServicoPrest.txt", locResgateRows.map(nfsInfoParaResgate)); }
