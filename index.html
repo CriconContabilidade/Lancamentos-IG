@@ -1005,7 +1005,11 @@ async function processarLocativa(){
           const cnpjInfo = resolverCnpj(crParsed.empresaCnpj, "cliente", alvo.codigo, alvo.nome);
           r.cnpjResolvido = cnpjInfo ? cnpjInfo.documento : "";
           r.numeroDocumento = r.numeroDocumento || alvo.documento;
-          locBaixaRows.push({numero:alvo.documento, cnpj:cnpjInfo?cnpjInfo.documento:"", nome:cnpjInfo?cnpjInfo.nome:alvo.nome, vencimento:alvo.vencimento, databaixa:dataRecebimento, valor:alvo.valorParcela, juros:0,multa:0,desconto:0,pis:0,cofins:0,csll:0,irrf:0, flag: !cnpjInfo || !dataRecebimento, statusText: !dataRecebimento ? "Data do TED não encontrada — preencha manualmente" : (!cnpjInfo ? "CPF/CNPJ não encontrado no cadastro" : "OK")});
+          const dataAntesEmissao = dataRecebimento && alvo.emissao && partsToDate(dataRecebimento) < partsToDate(alvo.emissao);
+          const flagRow = !cnpjInfo || !dataRecebimento || dataAntesEmissao;
+          const statusRow = dataAntesEmissao ? `Data do recebimento (${fmtDateBR(dataRecebimento)}) é anterior à emissão da nota (${fmtDateBR(alvo.emissao)}) — o Domínio rejeita isso em regime de caixa. Confira/ajuste a data.`
+            : !dataRecebimento ? "Data do TED não encontrada — preencha manualmente" : (!cnpjInfo ? "CPF/CNPJ não encontrado no cadastro" : "OK");
+          locBaixaRows.push({numero:alvo.documento, cnpj:cnpjInfo?cnpjInfo.documento:"", nome:cnpjInfo?cnpjInfo.nome:alvo.nome, vencimento:alvo.vencimento, emissao:alvo.emissao, databaixa:dataRecebimento, valor:alvo.valorParcela, juros:0,multa:0,desconto:0,pis:0,cofins:0,csll:0,irrf:0, flag: flagRow, statusText: statusRow});
         } else {
           locBaixaRows.push({numero:"", cnpj:"", nome:r.cliente, vencimento:null, databaixa:dataRecebimento, valor:r.valor, juros:0,multa:0,desconto:0,pis:0,cofins:0,csll:0,irrf:0, flag:true, statusText:"Não achei título em aberto desse cliente no Contas a Receber — confira/preencha manualmente"});
         }
@@ -1227,13 +1231,17 @@ async function processarBaixaServico(){
   function buildRow(titulo, dataBaixa, valor, desconto, statusClass, statusText){
     titulo._used = true;
     const cnpjInfo = resolverCnpj(contasState.empresaCnpj, "cliente", titulo.codigo, titulo.nome);
-    const cls = cnpjInfo ? statusClass : "err";
-    const txt = cnpjInfo ? statusText : "CPF/CNPJ não encontrado no cadastro";
+    let cls = cnpjInfo ? statusClass : "err";
+    let txt = cnpjInfo ? statusText : "CPF/CNPJ não encontrado no cadastro";
+    if(dataBaixa && titulo.emissao && partsToDate(dataBaixa) < partsToDate(titulo.emissao)){
+      cls = "err";
+      txt = `Data do recebimento (${fmtDateBR(dataBaixa)}) é anterior à emissão da nota (${fmtDateBR(titulo.emissao)}) — o Domínio rejeita isso em regime de caixa. Confira/ajuste a data.`;
+    }
     return {
       numero: titulo.documento, cnpj: cnpjInfo?cnpjInfo.documento:"", nome: cnpjInfo?cnpjInfo.nome:titulo.nome,
-      vencimento: titulo.vencimento, databaixa: dataBaixa, valor: valor!=null?valor:titulo.valorParcela,
+      vencimento: titulo.vencimento, emissao: titulo.emissao, databaixa: dataBaixa, valor: valor!=null?valor:titulo.valorParcela,
       juros:0, multa:0, desconto: desconto||0, pis:0, cofins:0, csll:0, irrf:0,
-      statusClass: cls, statusText: txt, incluir: statusClass!=="err",
+      statusClass: cls, statusText: txt, incluir: cls!=="err",
     };
   }
 
@@ -1387,11 +1395,19 @@ async function processarBaixaPagar(){
 }
 function buildRowPagar(titulo, dataBaixa, statusClass, statusText){
   const cnpjInfo = resolverCnpj(contasPagarState.empresaCnpj, "fornecedor", titulo.codigo, titulo.nome);
-  const cls = cnpjInfo ? statusClass : "err";
-  const txt = cnpjInfo ? statusText : "CPF/CNPJ não encontrado no cadastro";
+  let cls = cnpjInfo ? statusClass : "err";
+  let txt = cnpjInfo ? statusText : "CPF/CNPJ não encontrado no cadastro";
+  // Regime de caixa: o Domínio rejeita a baixa se a data do pagamento for anterior à
+  // emissão da nota (já aconteceu de verdade — um débito automático caiu no banco um
+  // dia antes da nota ser emitida) — sinaliza antes de exportar em vez de deixar
+  // estourar só na hora de importar.
+  if(dataBaixa && titulo.emissao && partsToDate(dataBaixa) < partsToDate(titulo.emissao)){
+    cls = "err";
+    txt = `Data do pagamento (${fmtDateBR(dataBaixa)}) é anterior à emissão da nota (${fmtDateBR(titulo.emissao)}) — o Domínio rejeita isso em regime de caixa. Confira/ajuste a data.`;
+  }
   return {
     numero: titulo.documento, cnpj: cnpjInfo?cnpjInfo.documento:"", nome: cnpjInfo?cnpjInfo.nome:titulo.nome,
-    vencimento: titulo.vencimento, databaixa: dataBaixa, valor: titulo.valorParcela,
+    vencimento: titulo.vencimento, emissao: titulo.emissao, databaixa: dataBaixa, valor: titulo.valorParcela,
     juros:0, multa:0, desconto:0, statusClass: cls, statusText: txt,
   };
 }
