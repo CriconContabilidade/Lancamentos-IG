@@ -985,10 +985,12 @@ async function processarTudo(){
    ter que importar 3 relatórios diferentes de lançamentos/NFS/baixas.
    ========================================================================= */
 function getLancRowsUnificado(){
-  const repasse = locLancamentoRows.map((r,i)=>({data:locDataRecebimento, debito: r.lado==="D"?r.conta:null, credito: r.lado==="C"?r.conta:null, valor:r.valor, hist:r.hist, iniciaLote: i===0?1:""}));
-  const revenue = locRevenueRows.map(r=>({data:locDataRecebimento, debito:null, credito:r.conta, valor:r.valor, hist:`RECEBIMENTO NF Nº ${r.numeroDocumento||'?'} - ${r.cliente}`, codHist:100, iniciaLote:""}));
-  const rendimento = locRendimentoRows.map((r,i)=>({data:r.data, debito:r.conta, credito:r.creditoReceita, valor:r.valor, hist:`RECEBIMENTO REF. RENDIMENTO DE APLICAÇÃO FINANCEIRA - TÍTULO ${r.titulo}`, iniciaLote:""}));
-  const padroes = rowsStateLanc.filter(r=>r.incluir!==false);
+  // Nunca exporta linha sem a conta preenchida (débito/crédito faltando por falta de
+  // cadastro) — fica só sinalizada na tela pra completar, não vai pro arquivo.
+  const repasse = locLancamentoRows.filter(r=>r.conta!=null).map((r,i)=>({data:locDataRecebimento, debito: r.lado==="D"?r.conta:null, credito: r.lado==="C"?r.conta:null, valor:r.valor, hist:r.hist, iniciaLote: i===0?1:""}));
+  const revenue = locRevenueRows.filter(r=>r.conta!=null).map(r=>({data:locDataRecebimento, debito:null, credito:r.conta, valor:r.valor, hist:`RECEBIMENTO NF Nº ${r.numeroDocumento||'?'} - ${r.cliente}`, codHist:100, iniciaLote:""}));
+  const rendimento = locRendimentoRows.filter(r=>r.conta!=null && r.creditoReceita!=null).map((r,i)=>({data:r.data, debito:r.conta, credito:r.creditoReceita, valor:r.valor, hist:`RECEBIMENTO REF. RENDIMENTO DE APLICAÇÃO FINANCEIRA - TÍTULO ${r.titulo}`, iniciaLote:1}));
+  const padroes = rowsStateLanc.filter(r=>r.incluir!==false && r.debito!=null && r.credito!=null);
   return [...repasse, ...revenue, ...rendimento, ...padroes];
 }
 function getNfsRowsUnificado(){
