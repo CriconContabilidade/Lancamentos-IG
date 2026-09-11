@@ -1465,7 +1465,7 @@ function renderResultTable(empresaNome, empresaCnpj){
 }
 function nfsInfoParaDireto(r){
   const cad = getContratoPorCliente(r.nome);
-  return {cnpj:r.cnpj, razaoSocial:r.nome, endereco: cad?cad.imovel:"", numeroDocumento:r.numero, data:r.databaixa, valor:r.valor, irrf:r.irrf||0};
+  return {cnpj:r.cnpj, razaoSocial:r.nome, endereco: cad?cad.imovel:"", numeroDocumento:r.numero, data:r.emissao||r.databaixa, valor:r.valor, irrf:r.irrf||0};
 }
 function downloadNfsDiretaXlsx(){
   const diretos = rowsState.filter(r=> r.incluir!==false && getContratoPorCliente(r.nome) && getContratoPorCliente(r.nome).direto);
