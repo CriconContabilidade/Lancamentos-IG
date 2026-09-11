@@ -1163,7 +1163,7 @@ function downloadLocLancamentosTxt(){
   const codEmp = "";
   const rows = locLancamentoRows.map((r,i)=>({data:null, debito: r.lado==="D"?r.conta:null, credito: r.lado==="C"?r.conta:null, valor:r.valor, hist:r.hist, iniciaLote: i===0?1:""}))
     .concat(locRevenueRows.map(r=>({data:null, debito:null, credito:r.conta, valor:r.valor, hist:`RECEBIMENTO NF Nº ${r.numeroDocumento||'?'} - ${r.cliente}`, codHist:100, iniciaLote:""})));
-  downloadLancamentosTxt("lancamentos_locativa.txt", rows, codEmp);
+  downloadLancamentosTxt("lanctos.txt", rows, codEmp);
 }
 function nfsInfoParaContrato(r){
   const info = r.cnpjResolvido ? {documento:r.cnpjResolvido} : resolverCnpjPorNome(r.cliente);
@@ -1173,21 +1173,21 @@ function nfsInfoParaContrato(r){
   };
 }
 function downloadNfsAluguelXlsx(){ downloadNfsXlsx("nfs_aluguel_ig.xlsx", locRevenueRows.map(nfsInfoParaContrato)); }
-function downloadNfsAluguelTxt(){ downloadNfsTxt("nfs_aluguel_ig.txt", locRevenueRows.map(nfsInfoParaContrato)); }
+function downloadNfsAluguelTxt(){ downloadNfsTxt("ServicoPrest.txt", locRevenueRows.map(nfsInfoParaContrato)); }
 function downloadRendimentoXlsx(){
   const rows = locRendimentoRows.map((r,i)=>({data:r.data, debito:r.conta, credito:r.creditoReceita, valor:r.valor, hist:`RECEBIMENTO REF. RENDIMENTO DE APLICAÇÃO FINANCEIRA - TÍTULO ${r.titulo}`, iniciaLote:i===0?1:""}));
   downloadLancamentosXlsx("lancamento_rendimento_ig.xlsx", rows, "");
 }
 function downloadRendimentoTxt(){
   const rows = locRendimentoRows.map((r,i)=>({data:r.data, debito:r.conta, credito:r.creditoReceita, valor:r.valor, hist:`RECEBIMENTO REF. RENDIMENTO DE APLICAÇÃO FINANCEIRA - TÍTULO ${r.titulo}`, iniciaLote:i===0?1:""}));
-  downloadLancamentosTxt("lancamento_rendimento_ig.txt", rows, "");
+  downloadLancamentosTxt("lanctos.txt", rows, "");
 }
 const UNICRED_CNPJ = "00075847000135";
 function nfsInfoParaResgate(r){
   return {cnpj:UNICRED_CNPJ, razaoSocial:"UNICRED", endereco:"", numeroDocumento:r.numeroDocumento||"", data:r.dataResgate, valor:r.rendimentoPago, irrf:r.irRetido};
 }
 function downloadNfsResgateXlsx(){ downloadNfsXlsx("nfs_resgate_ig.xlsx", locResgateRows.map(nfsInfoParaResgate)); }
-function downloadNfsResgateTxt(){ downloadNfsTxt("nfs_resgate_ig.txt", locResgateRows.map(nfsInfoParaResgate)); }
+function downloadNfsResgateTxt(){ downloadNfsTxt("ServicoPrest.txt", locResgateRows.map(nfsInfoParaResgate)); }
 
 function updateBaixaLocRow(i, field, val){
   const r = locBaixaRows[i];
@@ -1202,7 +1202,7 @@ function downloadBaixaLocXlsx(){
 }
 function downloadBaixaLocTxt(){
   const lines = locBaixaRows.map(r=> rowArrayBaixaLoc(r).map((v,i)=> i>=5 ? fmtValorTxt(v) : v).join(";"));
-  downloadText("baixa_ser_aluguel_locativa.txt", lines.join("\r\n") + "\r\n");
+  downloadText("baixa_ser.txt", lines.join("\r\n") + "\r\n");
 }
 
 /* =========================================================================
@@ -1330,7 +1330,7 @@ function downloadNfsDiretaXlsx(){
 }
 function downloadNfsDiretaTxt(){
   const diretos = rowsState.filter(r=> r.incluir!==false && getContratoPorCliente(r.nome) && getContratoPorCliente(r.nome).direto);
-  downloadNfsTxt("nfs_diretos_ig.txt", diretos.map(nfsInfoParaDireto));
+  downloadNfsTxt("ServicoPrest.txt", diretos.map(nfsInfoParaDireto));
 }
 function updateServRow(i, field, val){
   const r = rowsState[i];
@@ -1690,6 +1690,51 @@ function loadClientes(){ try{ const raw = localStorage.getItem("cibele_clientes_
 function saveClientes(db){ try{ localStorage.setItem("cibele_clientes_fornecedores", JSON.stringify(db)); }catch(e){} }
 let clientesDB = loadClientes();
 rebuildCodigoIndex();
+
+/* =========================================================================
+   NAVEGAÇÃO POR TECLADO NAS TABELAS — seta cima/baixo/esquerda/direita + Enter
+   trocam de campo como no Excel (padrão de todas as ferramentas do Hub)
+   ========================================================================= */
+document.addEventListener("keydown", function(e){
+  const teclasNav = ["ArrowUp","ArrowDown","ArrowLeft","ArrowRight","Enter"];
+  if(!teclasNav.includes(e.key)) return;
+  const alvo = e.target;
+  if(!alvo.matches || !alvo.matches("input, select, textarea")) return;
+  if(alvo.tagName==="TEXTAREA" && e.key==="Enter") return;
+  const lateral = e.key==="ArrowLeft" || e.key==="ArrowRight";
+  if(lateral && alvo.tagName!=="SELECT"){
+    const noInicio = alvo.selectionStart===0;
+    const noFim = alvo.selectionEnd===alvo.value.length;
+    if(e.key==="ArrowLeft" && !noInicio) return;
+    if(e.key==="ArrowRight" && !noFim) return;
+  }
+  const celula = alvo.closest("td, th");
+  if(!celula) return;
+  const linha = celula.parentElement;
+  let celulaAlvo;
+  if(lateral){
+    const celulas = Array.prototype.filter.call(linha.children, c => c.tagName==="TD" || c.tagName==="TH");
+    let idx = celulas.indexOf(celula);
+    do{
+      idx += e.key==="ArrowLeft" ? -1 : 1;
+      celulaAlvo = celulas[idx];
+    } while(celulaAlvo && !celulaAlvo.querySelector("input, select, textarea"));
+  } else {
+    const indiceCelula = Array.prototype.indexOf.call(linha.children, celula);
+    const corpo = linha.parentElement;
+    const linhas = Array.prototype.filter.call(corpo.children, l => l.tagName==="TR");
+    const indiceLinha = linhas.indexOf(linha);
+    const linhaAlvo = e.key==="ArrowUp" ? linhas[indiceLinha-1] : linhas[indiceLinha+1];
+    if(!linhaAlvo) return;
+    celulaAlvo = linhaAlvo.children[indiceCelula];
+  }
+  if(!celulaAlvo) return;
+  const campo = celulaAlvo.querySelector("input, select, textarea");
+  if(!campo) return;
+  e.preventDefault();
+  campo.focus();
+  if(campo.select) campo.select();
+});
 </script>
 
 <script type="module">
