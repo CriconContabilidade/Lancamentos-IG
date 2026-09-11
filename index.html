@@ -1006,10 +1006,11 @@ async function processarLocativa(){
           r.cnpjResolvido = cnpjInfo ? cnpjInfo.documento : "";
           r.numeroDocumento = r.numeroDocumento || alvo.documento;
           const dataAntesEmissao = dataRecebimento && alvo.emissao && partsToDate(dataRecebimento) < partsToDate(alvo.emissao);
+          const dataBaixaFinal = dataAntesEmissao ? alvo.emissao : dataRecebimento;
           const flagRow = !cnpjInfo || !dataRecebimento || dataAntesEmissao;
-          const statusRow = dataAntesEmissao ? `Data do recebimento (${fmtDateBR(dataRecebimento)}) é anterior à emissão da nota (${fmtDateBR(alvo.emissao)}) — o Domínio rejeita isso em regime de caixa. Confira/ajuste a data.`
+          const statusRow = dataAntesEmissao ? `Data do recebimento no extrato (${fmtDateBR(dataRecebimento)}) é anterior à emissão da nota — baixado na data de emissão (${fmtDateBR(alvo.emissao)}) em vez disso, pra não ser rejeitado pelo Domínio (regime de caixa). Confira.`
             : !dataRecebimento ? "Data do TED não encontrada — preencha manualmente" : (!cnpjInfo ? "CPF/CNPJ não encontrado no cadastro" : "OK");
-          locBaixaRows.push({numero:alvo.documento, cnpj:cnpjInfo?cnpjInfo.documento:"", nome:cnpjInfo?cnpjInfo.nome:alvo.nome, vencimento:alvo.vencimento, emissao:alvo.emissao, databaixa:dataRecebimento, valor:alvo.valorParcela, juros:0,multa:0,desconto:0,pis:0,cofins:0,csll:0,irrf:0, flag: flagRow, statusText: statusRow});
+          locBaixaRows.push({numero:alvo.documento, cnpj:cnpjInfo?cnpjInfo.documento:"", nome:cnpjInfo?cnpjInfo.nome:alvo.nome, vencimento:alvo.vencimento, emissao:alvo.emissao, databaixa:dataBaixaFinal, valor:alvo.valorParcela, juros:0,multa:0,desconto:0,pis:0,cofins:0,csll:0,irrf:0, flag: flagRow, statusText: statusRow});
         } else {
           locBaixaRows.push({numero:"", cnpj:"", nome:r.cliente, vencimento:null, databaixa:dataRecebimento, valor:r.valor, juros:0,multa:0,desconto:0,pis:0,cofins:0,csll:0,irrf:0, flag:true, statusText:"Não achei título em aberto desse cliente no Contas a Receber — confira/preencha manualmente"});
         }
@@ -1234,8 +1235,11 @@ async function processarBaixaServico(){
     let cls = cnpjInfo ? statusClass : "err";
     let txt = cnpjInfo ? statusText : "CPF/CNPJ não encontrado no cadastro";
     if(dataBaixa && titulo.emissao && partsToDate(dataBaixa) < partsToDate(titulo.emissao)){
-      cls = "err";
-      txt = `Data do recebimento (${fmtDateBR(dataBaixa)}) é anterior à emissão da nota (${fmtDateBR(titulo.emissao)}) — o Domínio rejeita isso em regime de caixa. Confira/ajuste a data.`;
+      const dataOriginal = dataBaixa;
+      dataBaixa = titulo.emissao;
+      const msgData = `Data do recebimento no extrato (${fmtDateBR(dataOriginal)}) é anterior à emissão da nota — baixado na data de emissão (${fmtDateBR(titulo.emissao)}) em vez disso, pra não ser rejeitado pelo Domínio (regime de caixa). Confira.`;
+      txt = cls==="err" ? `${txt}; ${msgData}` : msgData;
+      if(cls!=="err") cls = "warn";
     }
     return {
       numero: titulo.documento, cnpj: cnpjInfo?cnpjInfo.documento:"", nome: cnpjInfo?cnpjInfo.nome:titulo.nome,
@@ -1402,8 +1406,11 @@ function buildRowPagar(titulo, dataBaixa, statusClass, statusText){
   // dia antes da nota ser emitida) — sinaliza antes de exportar em vez de deixar
   // estourar só na hora de importar.
   if(dataBaixa && titulo.emissao && partsToDate(dataBaixa) < partsToDate(titulo.emissao)){
-    cls = "err";
-    txt = `Data do pagamento (${fmtDateBR(dataBaixa)}) é anterior à emissão da nota (${fmtDateBR(titulo.emissao)}) — o Domínio rejeita isso em regime de caixa. Confira/ajuste a data.`;
+    const dataOriginal = dataBaixa;
+    dataBaixa = titulo.emissao;
+    const msgData = `Data do pagamento no extrato (${fmtDateBR(dataOriginal)}) é anterior à emissão da nota — baixado na data de emissão (${fmtDateBR(titulo.emissao)}) em vez disso, pra não ser rejeitado pelo Domínio (regime de caixa). Confira.`;
+    txt = cls==="err" ? `${txt}; ${msgData}` : msgData;
+    if(cls!=="err") cls = "warn";
   }
   return {
     numero: titulo.documento, cnpj: cnpjInfo?cnpjInfo.documento:"", nome: cnpjInfo?cnpjInfo.nome:titulo.nome,
