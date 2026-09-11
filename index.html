@@ -809,14 +809,30 @@ function classificarItemLocativa(codigo){
 function findDataReferenciaAplicacao(itemsAllPages){
   for(const items of itemsAllPages){
     const byY = {};
-    items.forEach(it=>{ const y = Math.round(it.y); (byY[y]=byY[y]||[]).push(it); });
-    for(const y of Object.keys(byY)){
-      const line = byY[y].sort((a,b)=>a.x-b.x).map(it=>it.text).join(" ");
+    const rows = clusterByY(items);
+    for(const rowItems of rows){
+      const line = rowItems.map(it=>it.text).join(" ");
       const m = line.match(/Valores em\s*(\d{2}\/\d{2}\/\d{4})/i);
       if(m) return brDateToParts(m[1]);
     }
   }
   return null;
+}
+// Agrupa itens crus (x,y) em "linhas" com TOLERÂNCIA de Y (não Math.round exato) —
+// em relatórios com tabelas largas, uma coluna pode ter baseline levemente
+// diferente do resto da linha (visível até no cabeçalho desse relatório, que quebra
+// "IR Retido" em duas posições) — sem tolerância isso quebraria uma linha de dado
+// real em duas, corrompendo os valores lidos posicionalmente.
+function clusterByY(items, tol){
+  tol = tol==null ? 2 : tol;
+  const sorted = [...items].sort((a,b)=> b.y-a.y);
+  const rows = [];
+  sorted.forEach(it=>{
+    let row = rows.find(r=> Math.abs(r.y - it.y) <= tol);
+    if(!row){ row = {y:it.y, items:[]}; rows.push(row); }
+    row.items.push(it);
+  });
+  return rows.map(r=> r.items.sort((a,b)=>a.x-b.x));
 }
 // Layout de 1 linha por título (a IG só tem um CDB hoje): agrupa por Y (linha
 // da tabela) e lê as colunas na ordem impressa — mais simples e mais robusto
@@ -824,10 +840,8 @@ function findDataReferenciaAplicacao(itemsAllPages){
 function parseAplicacaoFinanceira(itemsAllPages){
   const linhas = [];
   itemsAllPages.forEach(items=>{
-    const byY = {};
-    items.forEach(it=>{ const y = Math.round(it.y); (byY[y]=byY[y]||[]).push(it); });
-    Object.keys(byY).forEach(y=>{
-      const rowItems = byY[y].sort((a,b)=>a.x-b.x);
+    const rows = clusterByY(items);
+    rows.forEach(rowItems=>{
       const rowText = rowItems.map(it=>it.text).join(" ");
       const tm = rowText.match(/^(\d{8,})\s+(\d{2}\/\d{2}\/\d{4})\s+(\d{2}\/\d{2}\/\d{4})\s+([\d.,]+)\s+([\d.,]+%\s*\S+)\s+([\d.,]+)\s+([\d.,]+)\s+([\d.,]+)\s+([\d.,]+)\s+([\d.,]+)\s+([\d.,]+)\s+([\d.,]+)/);
       if(!tm) return;
